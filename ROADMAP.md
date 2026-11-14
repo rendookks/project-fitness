@@ -16,3 +16,7 @@ Full nutrition tracking; AI-powered food assistance; automatic steps; sleep/acti
 ## Next smallest milestone
 
 Native iPhone acceptance and hardening: run DEVICE_TEST_CHECKLIST.md on the founders’ actual Expo Go version, repair any reproducible keyboard/safe-area/text-scaling/VoiceOver defects, and verify force-close persistence and isolation after saves complete. Acceptance requires the full workout journey and both reset scopes to pass on a phone, with screenshots reviewed by the founders. Keep all current automated gates passing before expanding feature scope.
+
+## V5 premium tracker milestone
+
+- Stage 0: remote SDK 58 base verified; baseline recorded in docs/BASELINE.md. Compatibility fixes address TypeScript 6 ambient types and nullable tab icon colors; SDK 58 lint initialization issue fixed without disabling a check.
