@@ -11,7 +11,6 @@ export default function TabsLayout() {
     <Tabs.Screen name="index" options={{ title: 'Today', tabBarAccessibilityLabel: 'Today', tabBarIcon: ({ color }) => <Feather name="grid" size={21} color={typeof color === 'string' ? color : c.muted} accessible={false} aria-hidden /> }} />
     <Tabs.Screen name="train" options={{ title: 'Train', tabBarAccessibilityLabel: 'Train', tabBarIcon: ({ color }) => <Feather name="activity" size={21} color={typeof color === 'string' ? color : c.muted} accessible={false} aria-hidden /> }} />
     <Tabs.Screen name="progress" options={{ title: 'Progress', tabBarAccessibilityLabel: 'Progress', tabBarIcon: ({ color }) => <Feather name="bar-chart-2" size={21} color={typeof color === 'string' ? color : c.muted} accessible={false} aria-hidden /> }} />
-    <Tabs.Screen name="fuel" options={{ title: 'Fuel', tabBarAccessibilityLabel: 'Fuel', tabBarIcon: ({ color }) => <Feather name="coffee" size={21} color={typeof color === 'string' ? color : c.muted} accessible={false} aria-hidden /> }} />
-    <Tabs.Screen name="learn" options={{ title: 'Learn', tabBarAccessibilityLabel: 'Learn', tabBarIcon: ({ color }) => <Feather name="book-open" size={21} color={typeof color === 'string' ? color : c.muted} accessible={false} aria-hidden /> }} />
+    <Tabs.Screen name="coach" options={{ title: 'Coach', tabBarAccessibilityLabel: 'Coach', tabBarIcon: ({ color }) => <Feather name="zap" size={21} color={typeof color === 'string' ? color : c.muted} accessible={false} aria-hidden /> }} />
   </Tabs>;
 }

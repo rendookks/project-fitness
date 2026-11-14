@@ -11,7 +11,7 @@ test('separate Expo SQLite demo file, persisted mode, edits, and reset isolation
   await expect(page.getByText('DEMO MODE · Fictional training records',{exact:true})).toBeVisible();
   await expect(page.getByRole('heading',{name:'Make today count.',exact:true})).toBeVisible();
   await page.screenshot({path:'test-results/stage4-demo-today.png',fullPage:true});
-  await page.goto('/progress');await expect(page.getByText('11',{exact:true})).toBeVisible();
+  await page.goto('/progress');await expect(page.getByText(/^11 workouts ·/)).toBeVisible();
   await page.getByText('Estimated 1RM · KG',{exact:true}).scrollIntoViewIfNeeded();
   await page.screenshot({path:'test-results/stage4-demo-chart.png',fullPage:true});
   await page.goto('/history');await expect(page.getByRole('button',{name:'Review Real saved session',exact:true})).toHaveCount(0);

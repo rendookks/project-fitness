@@ -12,7 +12,7 @@ const content = {
 export function Information({kind}:{kind:keyof typeof content}) {
   const {profile}=useApp(); if(!profile)return <Redirect href="/onboarding" />;
   const item=content[kind];
-  return <Screen>{kind==='recovery'&&<Button title="Back to Today" variant="secondary" onPress={()=>router.replace('/(tabs)')} />}<Eyebrow>{item.section} / A LOOK AHEAD</Eyebrow>
+  return <Screen>{<Button title="Back to Today" variant="secondary" onPress={()=>router.replace('/(tabs)')} />}<Eyebrow>{item.section} / A LOOK AHEAD</Eyebrow>
     <View style={{height:192,borderRadius:32,backgroundColor:c.surface,borderWidth:1,borderColor:c.border,alignItems:'center',justifyContent:'center',overflow:'hidden'}}>
       {[160,120,80].map((size,i)=><View key={size} style={{position:'absolute',width:size,height:size,borderRadius:size/2,borderWidth:1,borderColor:item.color,opacity:.08+i*.08}} />)}<Icon name={item.icon} size={36} color={item.color} />
       <View style={{position:'absolute',bottom:18,flexDirection:'row',gap:12}}>{item.words.map(word=><Txt key={word} style={{fontSize:9,lineHeight:14,letterSpacing:1.5,color:c.muted,fontFamily:fonts.bold}}>{word}</Txt>)}</View>

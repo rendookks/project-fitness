@@ -57,7 +57,7 @@ test('small screens, enlarged text, and tab navigation',async({page})=>{
   await onboard(page);
   await page.getByRole('tab',{name:'Progress',exact:true}).click();
   await expect(page.getByRole('heading',{name:'Proof of your effort.',exact:true})).toBeVisible();
-  for(const label of ['Fuel','Learn','Today','Train']){
+  for(const label of ['Coach','Today','Train']){
     await page.getByRole('tab',{name:label,exact:true}).click();
   }
   await page.goto('/');
