@@ -2,6 +2,7 @@ import Feather from '@expo/vector-icons/Feather';
 import { ComponentProps, PropsWithChildren } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleProp, StyleSheet, Text, TextInput, TextInputProps, TextProps, View, ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useDemoLayout } from '../state/mode-layout';
 import { colors as c, fonts } from '../theme/tokens';
 
 export function Txt({ style, tone = 'normal', ...props }: TextProps & { tone?: 'normal' | 'muted' | 'accent' }) {
@@ -33,7 +34,8 @@ export function Chip({ label, selected, onPress }: { label: string; selected?: b
   </Pressable>;
 }
 export function Screen({ children }: PropsWithChildren) {
-  return <SafeAreaView edges={['top', 'left', 'right']} style={s.screen}><ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={s.content}>{children}</ScrollView></SafeAreaView>;
+  const demo=useDemoLayout();
+  return <SafeAreaView edges={demo?['left','right']:['top','left','right']} style={s.screen}><ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={s.content}>{children}</ScrollView></SafeAreaView>;
 }
 export function Loading({ message = 'Opening your training space…' }: { message?: string }) {
   return <SafeAreaView style={[s.screen, s.center]}><ActivityIndicator color={c.iris} /><Txt tone="muted">{message}</Txt></SafeAreaView>;

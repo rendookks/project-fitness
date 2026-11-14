@@ -1,8 +1,11 @@
 import * as SQLite from 'expo-sqlite';
+import { DatabaseKind } from './interface';
 import { migrate, SqlDriver, SqliteStorage } from './sqlite';
 
 const connections = new Map<string, Promise<SqliteStorage>>();
-export function openStorage(filename = 'project_fitness.db'): Promise<SqliteStorage> {
+export const DATABASE_FILES = { real: 'project_fitness.db', demo: 'project_fitness_demo.db' } as const;
+export function openStorage(kind: DatabaseKind = 'real'): Promise<SqliteStorage> {
+  const filename = DATABASE_FILES[kind];
   const existing = connections.get(filename);
   if (existing) return existing;
   const opened = (async () => {
@@ -15,7 +18,7 @@ export function openStorage(filename = 'project_fitness.db'): Promise<SqliteStor
       transaction: action => db.withTransactionAsync(action),
     };
     await migrate(driver);
-    return new SqliteStorage(driver);
+    return new SqliteStorage(driver, kind);
   })();
   connections.set(filename, opened);
   void opened.catch(() => connections.delete(filename));

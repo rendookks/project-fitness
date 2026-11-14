@@ -5,3 +5,5 @@ An offline workout tracker for adults building strength and consistent training 
 Promise: Track your fitness. Understand your progress. Know what to improve.
 
 This build is restricted to foundation, a persistent workout loop, supporting analytics and informational entry screens, and isolated demo data if all earlier gates pass. No accounts, cloud sync, health integrations, food logging, lessons, or generated AI are in scope.
+
+Current implementation covers all four authorized stages: a genuine persistent workout loop, actual-record analytics, deterministic insights, and isolated fictional demonstration data. Fuel, Learn, and Recovery are informational previews. No later-roadmap product capabilities were implemented. Phone acceptance is tracked separately in DEVICE_TEST_CHECKLIST.md.

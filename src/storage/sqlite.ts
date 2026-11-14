@@ -1,5 +1,5 @@
 import { AppSettings, UserProfile, WorkoutSession } from '../domain/models';
-import { FitnessStorage } from './interface';
+import { DatabaseKind, DemoSeed, FitnessStorage } from './interface';
 
 export type SqlValue = string | number | null;
 /** Minimal driver lets integration checks run these exact statements on real SQLite. */
@@ -10,7 +10,7 @@ export interface SqlDriver {
   all<T>(sql: string, ...params: SqlValue[]): Promise<T[]>;
   transaction(action: () => Promise<void>): Promise<void>;
 }
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 export async function migrate(db: SqlDriver): Promise<void> {
   await db.exec('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;');
   const version = await db.get<{ user_version: number }>('PRAGMA user_version');
@@ -35,6 +35,11 @@ export async function migrate(db: SqlDriver): Promise<void> {
       `);
     });
   }
+  if (version.user_version < 2) {
+    await db.transaction(async () => {
+      await db.exec('CREATE TABLE metadata (key TEXT PRIMARY KEY NOT NULL, value TEXT NOT NULL); PRAGMA user_version = 2;');
+    });
+  }
 }
 function decode<T>(row: { payload: string } | null): T | null {
   if (!row) return null;
@@ -43,7 +48,18 @@ function decode<T>(row: { payload: string } | null): T | null {
   catch { throw new Error('A saved record could not be read. Your data was preserved.'); }
 }
 export class SqliteStorage implements FitnessStorage {
-  constructor(private readonly db: SqlDriver) {}
+  constructor(private readonly db: SqlDriver, readonly kind: DatabaseKind = 'real') {}
+  async initializeDemo(seed: DemoSeed, replace = false) {
+    if (this.kind !== 'demo') throw new Error('Demo seeding is forbidden in the real database.');
+    await this.db.transaction(async () => {
+      const seeded = await this.db.get<{ value: string }>("SELECT value FROM metadata WHERE key = 'demo_seed_version'");
+      if (seeded && !replace) return;
+      if (replace) await this.db.exec('DELETE FROM workouts; DELETE FROM profile; DELETE FROM settings; DELETE FROM metadata;');
+      await this.saveProfile(seed.profile); await this.saveSettings(seed.settings);
+      for (const workout of seed.workouts) await this.saveWorkout(workout);
+      await this.db.run("INSERT INTO metadata(key, value) VALUES ('demo_seed_version', ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value", String(seed.version));
+    });
+  }
   async saveOnboarding(profile: UserProfile, settings: AppSettings) {
     await this.db.transaction(async () => { await this.saveSettings(settings); await this.saveProfile(profile); });
   }
@@ -70,7 +86,7 @@ export class SqliteStorage implements FitnessStorage {
   async deleteWorkout(id: string) { await this.db.run('DELETE FROM workouts WHERE id = ?', id); }
   async reset() {
     await this.db.transaction(async () => {
-      await this.db.exec('DELETE FROM workouts; DELETE FROM profile; DELETE FROM settings;');
+      await this.db.exec('DELETE FROM workouts; DELETE FROM profile; DELETE FROM settings; DELETE FROM metadata;');
     });
   }
 }

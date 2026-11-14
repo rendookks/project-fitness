@@ -1,0 +1,50 @@
+import { expect, test } from '@playwright/test';
+import { onboard, saveWorkout } from './helpers';
+
+test('separate Expo SQLite demo file, persisted mode, edits, and reset isolation',async({page})=>{
+  test.setTimeout(90_000);
+  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
+  await onboard(page);await saveWorkout(page,'Real saved session','80','1');
+  await page.goto('/train');await page.getByRole('textbox',{name:'Workout name',exact:true}).fill('Real unfinished session');await page.getByTestId('start-workout').click();
+  await expect(page.getByRole('heading',{name:'Real unfinished session',exact:true})).toBeVisible();
+  await page.goto('/settings');await page.getByRole('button',{name:'Enable demo mode',exact:true}).click();
+  await expect(page.getByText('DEMO MODE · Fictional training records',{exact:true})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Make today count.',exact:true})).toBeVisible();
+  await page.screenshot({path:'test-results/stage4-demo-today.png',fullPage:true});
+  await page.goto('/progress');await expect(page.getByText('11',{exact:true})).toBeVisible();
+  await page.getByText('Estimated 1RM · KG',{exact:true}).scrollIntoViewIfNeeded();
+  await page.screenshot({path:'test-results/stage4-demo-chart.png',fullPage:true});
+  await page.goto('/history');await expect(page.getByRole('button',{name:'Review Real saved session',exact:true})).toHaveCount(0);
+  const first=page.getByRole('button',{name:/^Review Demo ·/}).first();const removedLabel=await first.getAttribute('aria-label');
+  await first.click();await page.getByRole('button',{name:'Delete workout',exact:true}).click();await page.getByRole('button',{name:'Delete',exact:true}).click();
+  await expect(page.getByRole('heading',{name:'Work, recorded.',exact:true})).toBeVisible();
+  // A new fictional workout is editable through the same real logger.
+  await saveWorkout(page,'Demo edited session','40','8');
+  await page.goto('/settings');await page.getByRole('button',{name:'Pounds (lb)',exact:true}).click();await expect(page.getByText('Saving locally…')).toHaveCount(0);
+  await page.reload();await expect(page.getByRole('button',{name:'Return to real data',exact:true})).toBeVisible();await expect(page.getByText('DEMO MODE · Fictional training records',{exact:true})).toBeVisible();
+  await page.goto('/history');await expect(page.getByRole('button',{name:'Review Demo edited session',exact:true})).toBeVisible();
+  // Multiple seed names repeat across weeks; check the deleted ID stays absent via the visible count.
+  await expect(page.getByRole('button',{name:/^Review /})).toHaveCount(11);
+  expect(removedLabel).toContain('Review Demo ·');
+  await page.goto('/settings');await page.getByRole('button',{name:'Return to real data',exact:true}).click();
+  await expect(page.getByText('DEMO MODE · Fictional training records',{exact:true})).toHaveCount(0);
+  await page.goto('/history');await expect(page.getByRole('button',{name:'Review Real saved session',exact:true})).toBeVisible();await expect(page.getByRole('button',{name:'Review Demo edited session',exact:true})).toHaveCount(0);
+  await page.goto('/train');await expect(page.getByRole('heading',{name:'Real unfinished session',exact:true})).toBeVisible();
+  await page.goto('/settings');await page.getByRole('button',{name:'Enable demo mode',exact:true}).click();
+  await expect(page.getByText('DEMO MODE · Fictional training records',{exact:true})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Make today count.',exact:true})).toBeVisible();
+  await page.goto('/history');await expect(page.getByRole('button',{name:'Review Demo edited session',exact:true})).toBeVisible();
+  await page.goto('/settings');await page.getByRole('button',{name:'Reset demo database',exact:true}).click();await page.getByRole('button',{name:'Cancel',exact:true}).click();
+  await page.getByRole('button',{name:'Reset demo database',exact:true}).click();await page.getByRole('button',{name:'Reset demo data',exact:true}).click();
+  await expect(page.getByRole('heading',{name:'Make today count.',exact:true})).toBeVisible();
+  await page.goto('/history');await expect(page.getByRole('button',{name:/^Review /})).toHaveCount(11);await expect(page.getByRole('button',{name:'Review Demo edited session',exact:true})).toHaveCount(0);
+  await page.reload();await expect(page.getByRole('button',{name:/^Review /})).toHaveCount(11);
+  await page.goto('/settings');await page.getByRole('button',{name:'Return to real data',exact:true}).click();
+  await expect(page.getByText('DEMO MODE · Fictional training records',{exact:true})).toHaveCount(0);
+  await expect(page.getByRole('heading',{name:'Make today count.',exact:true})).toBeVisible();
+  await page.reload();
+  await expect(page.getByText('DEMO MODE · Fictional training records',{exact:true})).toHaveCount(0);
+  await page.goto('/history');await page.getByRole('button',{name:'Review Real saved session',exact:true}).click();await expect(page.getByText('80 kg',{exact:true})).toBeVisible();
+  await page.goto('/train');await expect(page.getByRole('heading',{name:'Real unfinished session',exact:true})).toBeVisible();
+  expect(errors).toEqual([]);
+});

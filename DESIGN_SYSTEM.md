@@ -11,3 +11,5 @@ Premium athletic technology with calm surfaces, generous whitespace, and strong 
 - Today emphasizes one workout action; Train favors large numeric controls; Progress uses readable labeled charts. Fuel, Learn, Recovery clearly disclose their informational status.
 
 Final visual approval and native text/keyboard behavior require founder review on phone.
+
+The Today hero stacks its ring below the heading on narrow displays or elevated native font scaling. Decorative icons have hidden accessibility content; buttons/tabs have explicit names. Browser screenshots include 390px views and a 320px CSS enlarged-text simulation. This is not native Dynamic Type validation. The scaffold launcher icon is retained pending permanent branding.

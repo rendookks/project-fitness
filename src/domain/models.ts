@@ -10,7 +10,7 @@ export interface UserProfile {
   equipment: Equipment[];
   onboardingCompletedAt: string;
 }
-export interface AppSettings { unit: WeightUnit }
+export interface AppSettings { unit: WeightUnit; demoEnabled?: boolean }
 export interface Exercise {
   id: string;
   name: string;
