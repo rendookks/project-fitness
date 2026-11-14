@@ -6,8 +6,9 @@ import { colors as c, fonts } from '../theme/tokens';
 import { Icon, Row, Txt } from '../ui';
 
 /** Local numeric drafts may be invalid; only validated values cross the storage boundary. */
-export function InlineSet({ set, index, exerciseName, unit, onSave, onDetails }: {
+export function InlineSet({ set, index, exerciseName, unit, onSave, onDetails, record }: {
   set: ExerciseSet; index: number; exerciseName: string; unit: WeightUnit;
+  record?: string;
   onSave: (patch: Partial<ExerciseSet>) => Promise<boolean>; onDetails: () => void;
 }) {
   const initial = editableWeight(set.weightGrams, unit);
@@ -38,6 +39,7 @@ export function InlineSet({ set, index, exerciseName, unit, onSave, onDetails }:
         void save(!set.completed).finally(() => { completing.current = false; });
       }} style={{ width: 44, minHeight: 44, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: set.completed ? c.aqua : c.elevated }}><Icon name="check" color={set.completed ? c.ink : c.muted} /></Pressable>
     </Row>
+    {record && <Txt style={{fontSize:11,color:c.champagne}}>{record}</Txt>}
     {error ? <Txt accessibilityRole="alert" style={{ fontSize: 12, color: c.danger }}>{error}</Txt> : null}
   </View>;
 }

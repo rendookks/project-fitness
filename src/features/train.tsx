@@ -4,6 +4,7 @@ import { Pressable, View } from 'react-native';
 import { previousPerformance } from '../domain/calculations';
 import { exerciseById } from '../domain/exercises';
 import { ExerciseSet } from '../domain/models';
+import { setRecordLabels } from '../domain/strength';
 import { makeId } from '../domain/repository';
 import { formatWeight } from '../domain/units';
 import { useApp } from '../state/app-context';
@@ -38,7 +39,7 @@ export default function Train() {
           <Row style={{ alignItems: 'flex-start' }}><View style={{ flex: 1, gap: 4 }}><Eyebrow>EXERCISE {String(index + 1).padStart(2, '0')}</Eyebrow><Txt accessibilityRole="header" style={{ fontFamily: fonts.bold, fontSize: 20, lineHeight: 27 }}>{exercise.name}</Txt><Txt tone="muted" style={{ fontSize: 12 }}>{exercise.muscle} · {exercise.equipment}</Txt></View><Pressable accessibilityRole="button" accessibilityLabel={`Remove ${exercise.name}`} disabled={pending} onPress={() => setConfirm({ title: 'Remove exercise?', detail: `${exercise.name} and its sets will be removed from this session.`, action: () => repository.removeExercise(active.id, entry.id) })} style={{ minHeight: 44, minWidth: 44, alignItems: 'center', justifyContent: 'center' }}><Icon name="x" /></Pressable></Row>
           <View style={{ backgroundColor: c.elevated, padding: 8, borderRadius: 10, gap: 4 }}><Txt style={{ fontSize: 12, color: c.aqua, fontFamily: fonts.bold }}>LAST SESSION</Txt><Txt tone="muted" style={{ fontSize: 12 }}>{previous ? `${new Date(previous.date).toLocaleDateString()} · ${previous.workoutName} · ${previous.sets.map(s => `${formatWeight(s.weightGrams, settings.unit)} ${settings.unit} × ${s.reps}`).join(' / ')}` : 'Your first completed working set will start the story.'}</Txt></View>
           <Row style={{ gap: 8 }}><Txt tone="muted" style={{ width: 44, fontSize: 10 }}>SET</Txt><Txt tone="muted" style={{ flex: 1, fontSize: 10 }}>{settings.unit.toUpperCase()}</Txt><Txt tone="muted" style={{ flex: 1, fontSize: 10 }}>REPS</Txt><Txt tone="muted" style={{ width: 44, fontSize: 10 }}>DONE</Txt></Row>
-          {entry.sets.map((set, i) => <InlineSet key={`${set.id}-${settings.unit}`} set={set} index={i} exerciseName={exercise.name} unit={settings.unit} onSave={patch => run(() => repository.updateSet(active.id, entry.id, set.id, patch))} onDetails={() => setEditing({ exId: entry.id, exerciseName: exercise.name, set })} />)}
+          {entry.sets.map((set, i) => <InlineSet key={`${set.id}-${settings.unit}`} set={set} index={i} exerciseName={exercise.name} unit={settings.unit} record={setRecordLabels(set, workouts, exercise.id).join(' · ')} onSave={patch => run(() => repository.updateSet(active.id, entry.id, set.id, patch))} onDetails={() => setEditing({ exId: entry.id, exerciseName: exercise.name, set })} />)}
           <Button title={`Add set · ${exercise.name}`} variant="secondary" icon="plus" disabled={pending} onPress={() => {
             const last = entry.sets[entry.sets.length - 1] ?? previous?.sets[entry.sets.length] ?? previous?.sets[previous.sets.length - 1];
             const set: ExerciseSet = { id: makeId(), reps: last?.reps ?? 8, weightGrams: last?.weightGrams ?? 0, kind: 'working', completed: false };

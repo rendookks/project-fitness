@@ -15,12 +15,14 @@ export function workoutVolume(workout: WorkoutSession): number {
   return workingSets(workout).reduce((sum, { set }) => sum + set.weightGrams * set.reps, 0);
 }
 export function personalRecord(workouts: readonly WorkoutSession[], exerciseId: string) {
-  const sets = workouts.flatMap(workingSets).filter(s => s.exerciseId === exerciseId).map(s => s.set);
-  const estimates = sets.map(s => estimated1RM(s.weightGrams, s.reps)).filter((n): n is number => n !== null);
-  return {
-    heaviestGrams: sets.length ? Math.max(...sets.map(s => s.weightGrams)) : null,
-    estimated1RMGrams: estimates.length ? Math.max(...estimates) : null,
-  };
+  let heaviestGrams: number | null = null; let estimated1RMGrams: number | null = null;
+  for (const workout of workouts) for (const {exerciseId: id,set} of workingSets(workout)) {
+    if (id !== exerciseId) continue;
+    heaviestGrams = heaviestGrams === null ? set.weightGrams : Math.max(heaviestGrams, set.weightGrams);
+    const estimate = estimated1RM(set.weightGrams, set.reps);
+    if (estimate !== null) estimated1RMGrams = estimated1RMGrams === null ? estimate : Math.max(estimated1RMGrams, estimate);
+  }
+  return { heaviestGrams, estimated1RMGrams };
 }
 export function previousPerformance(workouts: readonly WorkoutSession[], exerciseId: string, routineId?: string) {
   const candidates = completedWorkouts(workouts).filter(w => workingSets(w).some(s => s.exerciseId === exerciseId))

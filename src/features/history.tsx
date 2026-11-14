@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { View } from 'react-native';
 import { completedWorkouts, workingSets, workoutVolume } from '../domain/calculations';
 import { exerciseById } from '../domain/exercises';
+import { workoutRecords } from '../domain/strength';
 import { formatWeight } from '../domain/units';
 import { useApp } from '../state/app-context';
 import { colors, fonts } from '../theme/tokens';
@@ -27,6 +28,7 @@ export function WorkoutDetail() {
   return <Screen><Button title="Back to history" variant="secondary" onPress={() => router.replace('/history')} />
     {!workout ? <Empty title="Workout unavailable" detail="This workout may have been deleted from this device." /> : <>
       <Eyebrow>{workout.status === 'completed' ? 'SAVED SESSION' : 'UNFINISHED SESSION'}</Eyebrow><Heading>{workout.name}</Heading><Txt tone="muted">Started {new Date(workout.startedAt).toLocaleString()}</Txt>{workout.completedAt && <Txt tone="muted">Finished {new Date(workout.completedAt).toLocaleString()}</Txt>}
+      {workoutRecords(workouts, workout).map(r => <Card key={`${r.exerciseId}-${r.metric}`} style={{padding:14,borderColor:colors.champagne}}><Eyebrow>NEW PERSONAL RECORD</Eyebrow><Txt style={{color:colors.champagne,fontFamily:fonts.bold}}>{exerciseById(r.exerciseId,customExercises,workout.exercises.find(e=>e.exerciseId===r.exerciseId)?.exerciseSnapshot).name} · {r.metric}</Txt><Txt>{formatWeight(r.grams,settings.unit)} {settings.unit} · previously {formatWeight(r.previousGrams,settings.unit)} {settings.unit}</Txt></Card>)}
       <Card><Row><View><Eyebrow>WORKING SETS</Eyebrow><Heading>{workingSets(workout).length}</Heading></View><View><Eyebrow>EXTERNAL VOLUME</Eyebrow><Txt style={{ fontFamily: fonts.bold }}>{formatWeight(workoutVolume(workout), settings.unit)} {settings.unit}</Txt></View></Row><Txt tone="muted" style={{ fontSize: 12 }}>Completed working sets only. Unweighted bodyweight sets contribute zero external-load volume.</Txt></Card>
       {workout.exercises.map(ex => <Card key={ex.id}><Txt style={{ fontFamily: fonts.bold, fontSize: 20 }}>{exerciseById(ex.exerciseId, customExercises, ex.exerciseSnapshot).name}</Txt>{ex.sets.length === 0 && <Txt tone="muted">No sets logged.</Txt>}{ex.sets.map((s,i) => <View key={s.id} style={{ borderTopColor: colors.border, borderTopWidth: 1, paddingTop: 10, gap: 2 }}><Row><Txt>{i+1}. {formatWeight(s.weightGrams, settings.unit)} {settings.unit} × {s.reps}</Txt><Txt style={{ color: s.completed ? colors.aqua : colors.muted, fontSize: 12 }}>{s.completed ? 'Completed' : 'Incomplete'}</Txt></Row><Txt tone="muted" style={{ fontSize: 12 }}>{s.kind === 'warmup' ? 'Warm-up · excluded from statistics' : 'Working set'}</Txt></View>)}</Card>)}
       {workout.status === 'active' && <Button title="Resume workout" onPress={() => router.push('/(tabs)/train')} />}
