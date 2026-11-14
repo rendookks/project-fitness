@@ -10,11 +10,13 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "jest",
-    "validate": "npm run typecheck && npm run lint && npm test -- --runInBand && npm run test:sqlite",
+    "validate": "npm run typecheck && npm run lint && npm test -- --runInBand && npm run test:sqlite && npm run test:calendar",
     "doctor": "npx expo-doctor@latest",
     "export:check": "expo export --platform ios --platform android --platform web",
     "preview:web": "node scripts/serve-web.cjs",
-    "test:sqlite": "tsx scripts/verify-sqlite.ts"
+    "test:sqlite": "tsx scripts/verify-sqlite.ts",
+    "test:calendar": "node scripts/verify-timezones.cjs",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@expo-google-fonts/manrope": "^0.4.3",
@@ -38,6 +40,7 @@
     "react-native-web": "~0.21.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.65.1",
     "@types/jest": "^29.5.14",
     "@types/react": "~19.1.0",
     "eslint": "^9.25.0",

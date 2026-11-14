@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import { startOfWeek, shiftWeeks, weeklyConsistency } from '../src/domain/calculations';
+import { workout } from '../tests/fixtures';
+const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+const before = new Date(2026,2,2,0);
+const after = shiftWeeks(before,1);
+assert.equal(after.getHours(),0); assert.equal(after.getDate(),9);
+if(timezone === 'America/Chicago') assert.equal((after.getTime()-before.getTime())/3600000,167);
+const fall = new Date(2026,9,26); const fallAfter=shiftWeeks(fall,1);
+assert.equal(fallAfter.getHours(),0);
+if(timezone === 'America/Chicago') assert.equal((fallAfter.getTime()-fall.getTime())/3600000,169);
+assert.equal(startOfWeek(new Date(2026,2,8,23,59)).getDate(),2);
+const sunday=workout({completedAt:new Date(2026,2,8,23,59).toISOString()});
+const monday=workout({id:'monday',completedAt:after.toISOString()});
+assert.deepEqual(weeklyConsistency([sunday,monday],3,new Date(2026,2,11)).weeks.slice(-2).map(w=>w.count),[1,1]);
+console.log(`PASS: local Monday boundaries and calendar/DST arithmetic in ${timezone}`);

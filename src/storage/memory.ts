@@ -7,6 +7,7 @@ export class MemoryStorage implements FitnessStorage {
   private profile: UserProfile | null = null;
   private settings: AppSettings = { unit: 'kg' };
   private workouts = new Map<string, WorkoutSession>();
+  async saveOnboarding(profile: UserProfile, settings: AppSettings) { this.profile = copy(profile); this.settings = copy(settings); }
   async getProfile() { return copy(this.profile); }
   async saveProfile(profile: UserProfile) { this.profile = copy(profile); }
   async getSettings() { return copy(this.settings); }

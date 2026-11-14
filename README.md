@@ -24,3 +24,5 @@ npm run export:check
 ```
 
 SDK compatibility and bundling do not prove native runtime behavior. Physical iPhone launch, keyboard, persistence after app termination, accessibility, and visual review remain required. See ROADMAP.md for completed checkpoints and limitations. No personal fitness records leave the device; SQLite data is not encrypted. Development tools may access the network to serve the bundle.
+
+For additional browser verification, export first with `npm run export:check`, install a Playwright Chromium using `npx playwright install chromium`, then run `npm run test:e2e`. On Cloud, the installed system Chromium is selected with `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium`. The temporary verification server supplies cross-origin isolation headers for SQLite WASM and stops after the suite. These checks exercise actual Expo SQLite on web, not iOS SQLite.

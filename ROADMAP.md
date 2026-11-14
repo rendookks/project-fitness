@@ -3,7 +3,7 @@
 ## Current build
 
 - Stage 1 — Foundation: completed. Strict TypeScript, ESLint, 2 Jest tests, on-disk SQLite initialization/reopen checks, Expo Doctor 18/18, and iOS/Android/web export all passed. Native phone runtime remains unverified.
-- Stage 2 — Core workout loop: pending Stage 1 quality gate.
+- Stage 2 — Core workout loop: completed. Onboarding, searchable/filterable 24-exercise library, persistent active session, set editing/classification/completion/deletion, session saving, history, previous performance. 31 Jest tests, full real-SQLite lifecycle/rollback/reopen checks, DST checks in three timezones, browser journey with actual Expo SQLite reloads, Doctor 18/18, and iOS/Android/web export passed. Physical-device restart remains unverified.
 - Stage 3 — Product experience: pending Stage 2 quality gate.
 - Stage 4 — Isolated demo mode: optional, pending Stage 3 quality gate.
 

@@ -44,6 +44,9 @@ function decode<T>(row: { payload: string } | null): T | null {
 }
 export class SqliteStorage implements FitnessStorage {
   constructor(private readonly db: SqlDriver) {}
+  async saveOnboarding(profile: UserProfile, settings: AppSettings) {
+    await this.db.transaction(async () => { await this.saveSettings(settings); await this.saveProfile(profile); });
+  }
   async getProfile() { return decode<UserProfile>(await this.db.get('SELECT payload FROM profile WHERE id = 1')); }
   async saveProfile(profile: UserProfile) {
     await this.db.run('INSERT INTO profile(id, payload) VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET payload=excluded.payload', JSON.stringify(profile));

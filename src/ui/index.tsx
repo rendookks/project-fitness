@@ -1,4 +1,4 @@
-import { Feather } from '@expo/vector-icons';
+import Feather from '@expo/vector-icons/Feather';
 import { ComponentProps, PropsWithChildren } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleProp, StyleSheet, Text, TextInput, TextInputProps, TextProps, View, ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -10,14 +10,14 @@ export function Txt({ style, tone = 'normal', ...props }: TextProps & { tone?: '
 export function Heading({ children }: PropsWithChildren) { return <Txt accessibilityRole="header" style={s.heading}>{children}</Txt>; }
 export function Eyebrow({ children }: PropsWithChildren) { return <Txt style={s.eyebrow}>{children}</Txt>; }
 export function Icon({ name, color = c.muted, size = 20 }: { name: ComponentProps<typeof Feather>['name']; color?: string; size?: number }) {
-  return <Feather name={name} color={color} size={size} accessible={false} />;
+  return <Feather name={name} color={color} size={size} accessible={false} aria-hidden importantForAccessibility="no-hide-descendants" />;
 }
 export function Button({ title, onPress, variant = 'primary', disabled, icon, testID }: {
   title: string; onPress: () => void; variant?: 'primary' | 'secondary' | 'danger'; disabled?: boolean;
   icon?: ComponentProps<typeof Feather>['name']; testID?: string;
 }) {
   const color = variant === 'primary' ? c.ink : variant === 'danger' ? c.danger : c.text;
-  return <Pressable testID={testID} accessibilityRole="button" accessibilityState={{ disabled: !!disabled }} disabled={disabled} onPress={onPress}
+  return <Pressable testID={testID} accessibilityRole="button" accessibilityLabel={title} accessibilityState={{ disabled: !!disabled }} disabled={disabled} onPress={onPress}
     style={({ pressed }) => [s.button, variant === 'primary' ? { backgroundColor: c.iris } : { backgroundColor: c.elevated }, { opacity: disabled ? 0.45 : pressed ? 0.75 : 1 }]}>
     {icon && <Icon name={icon} color={color} />}<Txt style={{ fontFamily: fonts.bold, color, textAlign: 'center' }}>{title}</Txt>
   </Pressable>;
