@@ -13,6 +13,7 @@ import { Button, Card, Empty, Eyebrow, Field, Heading, Icon, Row, Screen, Txt } 
 import { Confirm, Sheet } from '../ui/sheet';
 import { ExerciseLibrary } from './exercise-library';
 import { SetEditor } from './set-editor';
+import { ProgressionCard } from './progression-card';
 import { Routines } from './routines';
 import { InlineSet } from './inline-set';
 
@@ -21,6 +22,8 @@ export default function Train() {
   const { workouts, repository, settings, run, pending, customExercises } = useApp();
   const active = workouts.find(w => w.status === 'active');
   const [name, setName] = useState('Strength session');
+  const [draftVersions, setDraftVersions] = useState<Record<string, number>>({});
+  const refreshDraft = (id: string) => setDraftVersions(v => ({...v, [id]: (v[id] ?? 0) + 1}));
   const [library, setLibrary] = useState(false);
   const [renaming, setRenaming] = useState(false);
   const [editing, setEditing] = useState<{ exId: string; exerciseName: string; set: ExerciseSet } | null>(null);
@@ -38,8 +41,9 @@ export default function Train() {
         return <Card key={entry.id} style={{ padding: 16 }}>
           <Row style={{ alignItems: 'flex-start' }}><View style={{ flex: 1, gap: 4 }}><Eyebrow>EXERCISE {String(index + 1).padStart(2, '0')}</Eyebrow><Txt accessibilityRole="header" style={{ fontFamily: fonts.bold, fontSize: 20, lineHeight: 27 }}>{exercise.name}</Txt><Txt tone="muted" style={{ fontSize: 12 }}>{exercise.muscle} · {exercise.equipment}</Txt></View><Pressable accessibilityRole="button" accessibilityLabel={`Remove ${exercise.name}`} disabled={pending} onPress={() => setConfirm({ title: 'Remove exercise?', detail: `${exercise.name} and its sets will be removed from this session.`, action: () => repository.removeExercise(active.id, entry.id) })} style={{ minHeight: 44, minWidth: 44, alignItems: 'center', justifyContent: 'center' }}><Icon name="x" /></Pressable></Row>
           <View style={{ backgroundColor: c.elevated, padding: 8, borderRadius: 10, gap: 4 }}><Txt style={{ fontSize: 12, color: c.aqua, fontFamily: fonts.bold }}>LAST SESSION</Txt><Txt tone="muted" style={{ fontSize: 12 }}>{previous ? `${new Date(previous.date).toLocaleDateString()} · ${previous.workoutName} · ${previous.sets.map(s => `${formatWeight(s.weightGrams, settings.unit)} ${settings.unit} × ${s.reps}`).join(' / ')}` : 'Your first completed working set will start the story.'}</Txt></View>
+          <ProgressionCard exerciseId={exercise.id} routineId={active.routineId} compact onApply={entry.sets.find(s=>s.kind==='working') && !entry.sets.find(s=>s.kind==='working')!.completed ? target => { const first=entry.sets.find(s=>s.kind==='working')!;void run(()=>repository.updateSet(active.id,entry.id,first.id,target)).then(ok=>{if(ok)refreshDraft(first.id);}); } : undefined} />
           <Row style={{ gap: 8 }}><Txt tone="muted" style={{ width: 44, fontSize: 10 }}>SET</Txt><Txt tone="muted" style={{ flex: 1, fontSize: 10 }}>{settings.unit.toUpperCase()}</Txt><Txt tone="muted" style={{ flex: 1, fontSize: 10 }}>REPS</Txt><Txt tone="muted" style={{ width: 44, fontSize: 10 }}>DONE</Txt></Row>
-          {entry.sets.map((set, i) => <InlineSet key={`${set.id}-${settings.unit}`} set={set} index={i} exerciseName={exercise.name} unit={settings.unit} record={setRecordLabels(set, workouts, exercise.id).join(' · ')} onSave={patch => run(() => repository.updateSet(active.id, entry.id, set.id, patch))} onDetails={() => setEditing({ exId: entry.id, exerciseName: exercise.name, set })} />)}
+          {entry.sets.map((set, i) => <InlineSet key={`${set.id}-${settings.unit}-${draftVersions[set.id] ?? 0}`} set={set} index={i} exerciseName={exercise.name} unit={settings.unit} record={setRecordLabels(set, workouts, exercise.id).join(' · ')} onSave={patch => run(() => repository.updateSet(active.id, entry.id, set.id, patch))} onDetails={() => setEditing({ exId: entry.id, exerciseName: exercise.name, set })} />)}
           <Button title={`Add set · ${exercise.name}`} variant="secondary" icon="plus" disabled={pending} onPress={() => {
             const last = entry.sets[entry.sets.length - 1] ?? previous?.sets[entry.sets.length] ?? previous?.sets[previous.sets.length - 1];
             const set: ExerciseSet = { id: makeId(), reps: last?.reps ?? 8, weightGrams: last?.weightGrams ?? 0, kind: 'working', completed: false };
@@ -51,7 +55,7 @@ export default function Train() {
       <Button title="Finish workout" icon="check-circle" disabled={pending || !completedCount} onPress={() => setConfirm({ title: 'Finish and save?', detail: `${completedCount} completed sets will be saved. ${totalCount - completedCount} incomplete sets remain in history but do not count toward statistics. Warm-ups are excluded from working volume and records.`, label: 'Save workout', action: async () => { await repository.finishWorkout(active.id); } })} />
       <Button title="Discard workout" variant="danger" disabled={pending} onPress={() => setConfirm({ title: 'Discard this workout?', detail: 'The entire unfinished session will be deleted. This cannot be undone.', action: () => repository.deleteWorkout(active.id) })} />
       {library && <ExerciseLibrary added={active.exercises.map(e => e.exerciseId)} busy={pending} onClose={() => setLibrary(false)} onAdd={exerciseId => { void run(() => repository.addExercise(active.id, exerciseId)).then(ok => { if (ok) setLibrary(false); }); }} />}
-      {editing && <SetEditor onDelete={() => { setEditing(null); setConfirm({ title: 'Delete this set?', detail: 'This set will be removed from this session.', action: () => repository.removeSet(active.id, editing.exId, editing.set.id) }); }} key={`${editing.set.id}-${settings.unit}`} set={editing.set} exerciseName={editing.exerciseName} unit={settings.unit} busy={pending} onClose={() => setEditing(null)} onSave={set => run(() => repository.editSet(active.id, editing.exId, set))} />}
+      {editing && <SetEditor onDelete={() => { setEditing(null); setConfirm({ title: 'Delete this set?', detail: 'This set will be removed from this session.', action: () => repository.removeSet(active.id, editing.exId, editing.set.id) }); }} key={`${editing.set.id}-${settings.unit}`} set={editing.set} exerciseName={editing.exerciseName} unit={settings.unit} busy={pending} onClose={() => setEditing(null)} onSave={async set => { const ok=await run(() => repository.editSet(active.id, editing.exId, set));if(ok)refreshDraft(set.id);return ok; }} />}
       <Sheet visible={renaming} title="Name your session" onClose={() => { if (!pending) setRenaming(false); }}><Field label="Workout name" value={name} onChangeText={setName} maxLength={80} /><Button title="Save name" disabled={pending || !name.trim()} onPress={() => { void run(() => repository.renameWorkout(active.id, name)).then(ok => { if (ok) setRenaming(false); }); }} /><Button title="Cancel" variant="secondary" disabled={pending} onPress={() => setRenaming(false)} /></Sheet>
     </>}
     {!active && <Button title="Browse exercise library" variant="secondary" onPress={() => setLibrary(true)} />}

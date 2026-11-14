@@ -27,7 +27,7 @@ test('analytics, unit stability, insights, information screens, and confirmed re
   await page.goto('/progress');
   await expect(page.getByText('77.56 kg',{exact:true})).toBeVisible();
   await page.goto('/insights');
-  await expect(page.getByRole('heading',{name:'Rule-based Insights',exact:true})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Your next small step.',exact:true})).toBeVisible();
   await expect(page.getByText(/65 kg, previously 61.24 kg/)).toBeVisible();
   await expect(page.getByRole('textbox')).toHaveCount(0);
   for(const [route,title] of [['fuel','Fuel the work.'],['learn','Understand the why.'],['recovery','Room to rebuild.']]){
