@@ -1,13 +1,5 @@
-import { expect, test, Page } from '@playwright/test';
-
-export async function onboard(page: Page) {
-  await page.goto('/');
-  await expect(page.getByText('YOUR STARTING POINT · 1 / 3')).toBeVisible();
-  await page.getByRole('button', { name: 'Continue', exact: true }).click();
-  await page.getByRole('button', { name: 'Continue', exact: true }).click();
-  await page.getByRole('button', { name: 'Let’s build momentum', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Make today count.' })).toBeVisible();
-}
+import { expect, test } from '@playwright/test';
+import { onboard } from './helpers';
 
 test('real Expo SQLite browser workout journey and reload persistence', async ({ page }) => {
   const errors: string[] = []; page.on('pageerror', e => errors.push(e.message));

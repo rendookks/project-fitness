@@ -12,10 +12,10 @@ export function fromGrams(grams: number, unit: WeightUnit): number {
 }
 /** Display precision never becomes a canonical value unless the user explicitly edits weight. */
 export function formatWeight(grams: number, unit: WeightUnit): string {
-  return Number(fromGrams(grams, unit).toFixed(2)).toLocaleString(undefined, { maximumFractionDigits: 2 });
+  return fromGrams(grams, unit).toLocaleString(undefined, { maximumFractionDigits: 2 });
 }
 export function editableWeight(grams: number, unit: WeightUnit): string {
-  return String(Number(fromGrams(grams, unit).toFixed(2)));
+  return new Intl.NumberFormat('en-US', { maximumFractionDigits: 2, useGrouping: false }).format(fromGrams(grams, unit));
 }
 export function parseWeight(text: string, unit: WeightUnit): number {
   const value = text.trim().replace(',', '.');

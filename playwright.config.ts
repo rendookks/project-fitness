@@ -5,6 +5,7 @@ export default defineConfig({
   timeout: 60_000,
   expect: { timeout: 15_000 },
   use: {
+    actionTimeout: 15_000,
     baseURL: 'http://127.0.0.1:8081',
     viewport: { width: 390, height: 844 },
     deviceScaleFactor: 1,

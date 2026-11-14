@@ -1,5 +1,5 @@
 import { completedWorkouts, estimated1RM, personalRecord, previousPerformance, shiftWeeks, startOfWeek, weeklyConsistency, workingSets, workoutVolume } from '../src/domain/calculations';
-import { editableWeight, fromGrams, parseReps, parseWeight, toGrams } from '../src/domain/units';
+import { editableWeight, formatWeight, fromGrams, parseReps, parseWeight, toGrams } from '../src/domain/units';
 import { set, workout } from './fixtures';
 
 describe('canonical unit boundaries', () => {
@@ -17,6 +17,8 @@ describe('canonical unit boundaries', () => {
     for (let i=0; i<100; i++) { editableWeight(grams, 'lb'); editableWeight(grams, 'kg'); }
     expect(grams).toBe(61235); expect(editableWeight(grams,'lb')).toBe('135');
     expect(parseWeight('20,5', 'kg')).toBe(20500);
+    expect(editableWeight(61235,'kg')).toBe('61.24');
+    expect(formatWeight(61235,'kg')).toBe(Number(61.24).toLocaleString(undefined, {maximumFractionDigits:2}));
   });
   test.each(['', '-1', 'NaN', '1e3', '1.2.3'])('rejects malformed weight %s', text => expect(() => parseWeight(text, 'kg')).toThrow());
   test('rejects nonfinite, oversized weights and fractional reps', () => {

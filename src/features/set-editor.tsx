@@ -31,7 +31,7 @@ export function SetEditor({ set, unit, exerciseName, busy, onClose, onSave }: {
         try {
           const weightGrams = weight === initialWeight ? set.weightGrams : parseWeight(weight, unit);
           const next = { ...set, weightGrams, reps: parseReps(reps), kind, completed };
-          void onSave(next).then(ok => { if (ok) onClose(); });
+          void onSave(next).then(ok => { if (ok) onClose(); else setError('Could not save this set. Your previous saved set is preserved. Try again or cancel to view the error message.'); });
         } catch (e) { setError((e as Error).message); }
       }} />
       <Button title="Cancel editing" variant="secondary" disabled={busy} onPress={close} />
