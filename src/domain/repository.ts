@@ -1,6 +1,6 @@
 import { previousPerformance } from './calculations';
-import { exerciseById } from './exercises';
-import { AppSettings, ExerciseSet, Routine, UserProfile, WorkoutSession } from './models';
+import { EXERCISES, EQUIPMENT, MUSCLES, exerciseById } from './exercises';
+import { AppSettings, Exercise, ExerciseSet, Routine, UserProfile, WorkoutSession } from './models';
 import { MAX_WEIGHT_GRAMS } from './units';
 import { FitnessStorage } from '../storage/interface';
 
@@ -27,8 +27,8 @@ export class WorkoutRepository {
   }
   async load() {
     await this.tail;
-    const [profile, settings, workouts, routines] = await Promise.all([this.storage.getProfile(), this.storage.getSettings(), this.storage.getWorkouts(), this.storage.getRoutines()]);
-    return { profile, settings, workouts, routines };
+    const [profile, settings, workouts, routines, customExercises] = await Promise.all([this.storage.getProfile(), this.storage.getSettings(), this.storage.getWorkouts(), this.storage.getRoutines(), this.storage.getCustomExercises()]);
+    return { profile, settings, workouts, routines, customExercises };
   }
   onboard(profile: UserProfile, settings: AppSettings) {
     return this.queue(async () => {
@@ -45,12 +45,28 @@ export class WorkoutRepository {
       await this.storage.saveWorkout(workout); return workout;
     });
   }
+  saveCustomExercise(exercise: Exercise) {
+    return this.queue(async () => {
+      if (!exercise.id.startsWith('custom-') || !exercise.name.trim() || exercise.name.trim().length > 80 || !MUSCLES.some(m => m === exercise.muscle) || !EQUIPMENT.includes(exercise.equipment)) throw new Error('Choose a name of 1–80 characters, a muscle group, and equipment.');
+      const all = [...EXERCISES, ...await this.storage.getCustomExercises()];
+      if (all.some(e => e.id !== exercise.id && e.name.trim().toLocaleLowerCase() === exercise.name.trim().toLocaleLowerCase())) throw new Error('An exercise with this name already exists. Choose a distinct movement name.');
+      await this.storage.saveCustomExercise({ ...exercise, name: exercise.name.trim(), bodyweight: exercise.equipment === 'Bodyweight', custom: true });
+    });
+  }
+  archiveCustomExercise(id: string) {
+    return this.queue(async () => {
+      const exercise = (await this.storage.getCustomExercises()).find(e => e.id === id);
+      if (!exercise) throw new Error('Custom exercise not found.');
+      await this.storage.saveCustomExercise({ ...exercise, archived: true });
+    });
+  }
   saveRoutine(routine: Routine) {
     return this.queue(async () => {
       if (!routine.id || !routine.name.trim() || routine.name.trim().length > 80 || routine.exercises.length > 100) throw new Error('Use a routine name of 1–80 characters and up to 100 exercises.');
       if (new Set(routine.exercises.map(e => e.id)).size !== routine.exercises.length) throw new Error('Routine exercise identities must be unique.');
+      const custom = await this.storage.getCustomExercises();
       for (const entry of routine.exercises) {
-        exerciseById(entry.exerciseId);
+        if (![...EXERCISES, ...custom].some(e => e.id === entry.exerciseId) && !entry.exerciseSnapshot) throw new Error('Choose an exercise from the library.');
         if (!entry.sets.length || entry.sets.length > 50) throw new Error('Plan 1–50 sets per exercise.');
         for (const set of entry.sets) validateSet({ ...set, id: 'planned', weightGrams: set.weightGrams ?? 0, completed: false });
       }
@@ -72,10 +88,11 @@ export class WorkoutRepository {
       const active = workouts.find(w => w.status === 'active'); if (active) return active;
       const routine = (await this.storage.getRoutines()).find(r => r.id === id);
       if (!routine || !routine.exercises.length) throw new Error('Add an exercise to this routine before starting.');
+      const custom = await this.storage.getCustomExercises();
       const session: WorkoutSession = { id: this.id(), name: routine.name, routineId: routine.id, status: 'active', startedAt: this.now().toISOString(), completedAt: null,
         exercises: routine.exercises.map(entry => {
           const previous = previousPerformance(workouts, entry.exerciseId, routine.id);
-          return { id: this.id(), exerciseId: entry.exerciseId, exerciseSnapshot: entry.exerciseSnapshot,
+          return { id: this.id(), exerciseId: entry.exerciseId, exerciseSnapshot: exerciseById(entry.exerciseId, custom),
             sets: entry.sets.map((planned, index) => {
               const last = previous?.sets[index] ?? previous?.sets[previous.sets.length - 1];
               return { id: this.id(), kind: planned.kind, reps: planned.kind === 'working' ? last?.reps ?? planned.reps : planned.reps,
@@ -97,7 +114,15 @@ export class WorkoutRepository {
     return this.mutate(id, w => { if (!name.trim() || name.trim().length > 80) throw new Error('Use a workout name of 1–80 characters.'); w.name = name.trim(); });
   }
   addExercise(id: string, exerciseId: string) {
-    return this.mutate(id, w => { exerciseById(exerciseId); if (!w.exercises.some(e => e.exerciseId === exerciseId)) w.exercises.push({ id: this.id(), exerciseId, sets: [] }); });
+    return this.queue(async () => {
+      const custom = await this.storage.getCustomExercises();
+      const exercise = [...EXERCISES, ...custom].find(e => e.id === exerciseId && !e.archived);
+      if (!exercise) throw new Error('Choose an exercise from the library.');
+      const workout = (await this.storage.getWorkouts()).find(w => w.id === id);
+      if (!workout || workout.status !== 'active') throw new Error('Resume an active workout first.');
+      if (!workout.exercises.some(e => e.exerciseId === exerciseId)) workout.exercises.push({ id: this.id(), exerciseId, exerciseSnapshot: { ...exercise }, sets: [] });
+      await this.storage.saveWorkout(workout); return workout;
+    });
   }
   removeExercise(id: string, exerciseInstanceId: string) {
     return this.mutate(id, w => { w.exercises = w.exercises.filter(e => e.id !== exerciseInstanceId); });

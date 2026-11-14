@@ -1,4 +1,4 @@
-import { AppSettings, Routine, UserProfile, WorkoutSession } from '../domain/models';
+import { AppSettings, Exercise, Routine, UserProfile, WorkoutSession } from '../domain/models';
 import { DatabaseKind, DemoSeed, FitnessStorage } from './interface';
 
 export type SqlValue = string | number | null;
@@ -10,7 +10,7 @@ export interface SqlDriver {
   all<T>(sql: string, ...params: SqlValue[]): Promise<T[]>;
   transaction(action: () => Promise<void>): Promise<void>;
 }
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 4;
 export async function migrate(db: SqlDriver): Promise<void> {
   await db.exec('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;');
   const version = await db.get<{ user_version: number }>('PRAGMA user_version');
@@ -46,6 +46,12 @@ export async function migrate(db: SqlDriver): Promise<void> {
     });
   }
 
+  if (version.user_version < 4) {
+    await db.transaction(async () => {
+      await db.exec('CREATE TABLE custom_exercises (id TEXT PRIMARY KEY NOT NULL, payload TEXT NOT NULL); PRAGMA user_version = 4;');
+    });
+  }
+
 }
 function decode<T>(row: { payload: string } | null): T | null {
   if (!row) return null;
@@ -60,7 +66,7 @@ export class SqliteStorage implements FitnessStorage {
     await this.db.transaction(async () => {
       const seeded = await this.db.get<{ value: string }>("SELECT value FROM metadata WHERE key = 'demo_seed_version'");
       if (seeded && !replace) return;
-      if (replace) await this.db.exec('DELETE FROM routines; DELETE FROM workouts; DELETE FROM profile; DELETE FROM settings; DELETE FROM metadata;');
+      if (replace) await this.db.exec('DELETE FROM custom_exercises; DELETE FROM routines; DELETE FROM workouts; DELETE FROM profile; DELETE FROM settings; DELETE FROM metadata;');
       await this.saveProfile(seed.profile); await this.saveSettings(seed.settings);
       for (const workout of seed.workouts) await this.saveWorkout(workout);
       await this.db.run("INSERT INTO metadata(key, value) VALUES ('demo_seed_version', ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value", String(seed.version));
@@ -90,6 +96,12 @@ export class SqliteStorage implements FitnessStorage {
     workout.id, workout.status, workout.startedAt, workout.completedAt, JSON.stringify(workout));
   }
   async deleteWorkout(id: string) { await this.db.run('DELETE FROM workouts WHERE id = ?', id); }
+  async getCustomExercises() {
+    return (await this.db.all<{ payload: string }>('SELECT payload FROM custom_exercises ORDER BY rowid')).map(row => decode<Exercise>(row)!);
+  }
+  async saveCustomExercise(exercise: Exercise) {
+    await this.db.run('INSERT INTO custom_exercises(id, payload) VALUES (?, ?) ON CONFLICT(id) DO UPDATE SET payload=excluded.payload', exercise.id, JSON.stringify(exercise));
+  }
   async getRoutines() {
     return (await this.db.all<{ payload: string }>('SELECT payload FROM routines ORDER BY rowid')).map(row => decode<Routine>(row)!);
   }
@@ -99,7 +111,7 @@ export class SqliteStorage implements FitnessStorage {
   async deleteRoutine(id: string) { await this.db.run('DELETE FROM routines WHERE id = ?', id); }
   async reset() {
     await this.db.transaction(async () => {
-      await this.db.exec('DELETE FROM routines; DELETE FROM workouts; DELETE FROM profile; DELETE FROM settings; DELETE FROM metadata;');
+      await this.db.exec('DELETE FROM custom_exercises; DELETE FROM routines; DELETE FROM workouts; DELETE FROM profile; DELETE FROM settings; DELETE FROM metadata;');
     });
   }
 }

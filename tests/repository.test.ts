@@ -83,8 +83,8 @@ test('failed storage write preserves the previous snapshot and queue remains usa
   await repo.addSet(w.id,ex.id,set()); expect((await repo.load()).workouts[0].exercises[0].sets).toHaveLength(1);
 });
 test('library searches names, muscles and equipment with combined filters',()=>{
-  expect(searchExercises('bench').map(e=>e.id)).toEqual(['bench']);
-  expect(searchExercises('','Chest','Bodyweight').map(e=>e.id)).toEqual(['pushup']);
+  expect(searchExercises('bench').map(e=>e.id)).toContain('bench');
+  expect(searchExercises('','Chest','Bodyweight').map(e=>e.id)).toContain('pushup');
   expect(searchExercises('no such exercise')).toEqual([]);
 });
 

@@ -1,0 +1,33 @@
+import { expect, test } from '@playwright/test';
+import { onboard } from './helpers';
+
+test('create, log, edit, and archive a custom movement without rewriting history',async({page})=>{
+  await onboard(page);await page.goto('/train');
+  await page.getByTestId('start-workout').click();
+  await page.getByRole('button',{name:'Add exercise',exact:true}).click();
+  await page.getByRole('button',{name:'Create custom exercise',exact:true}).click();
+  await page.getByRole('textbox',{name:'Exercise name',exact:true}).fill('My press');
+  await page.getByRole('button',{name:'Save exercise',exact:true}).click();
+  await page.getByRole('textbox',{name:'Search exercises',exact:true}).fill('My press');
+  await page.getByRole('button',{name:'Add My press',exact:true}).click();
+  await page.getByRole('button',{name:'Add set · My press',exact:true}).click();
+  await page.getByRole('textbox',{name:'Weight (kg) set 1 of My press',exact:true}).fill('20');
+  await page.getByRole('checkbox',{name:'Complete set 1 of My press',exact:true}).click();
+  await expect(page.getByRole('checkbox',{name:'Complete set 1 of My press',exact:true})).toBeChecked();
+  await page.getByRole('button',{name:'Finish workout',exact:true}).click();
+  await page.getByRole('button',{name:'Save workout',exact:true}).click();
+  await expect(page.getByText('SAVED SESSION',{exact:true})).toBeVisible();
+  await page.goto('/train');await page.getByRole('button',{name:'Browse exercise library',exact:true}).click();
+  await page.getByRole('textbox',{name:'Search exercises',exact:true}).fill('My press');
+  await page.getByRole('button',{name:'Edit My press',exact:true}).click();
+  await page.getByRole('textbox',{name:'Exercise name',exact:true}).fill('Renamed press');
+  await page.getByRole('button',{name:'Save exercise',exact:true}).click();
+  await page.getByRole('textbox',{name:'Search exercises',exact:true}).fill('Renamed');
+  await page.getByRole('button',{name:'Archive Renamed press',exact:true}).click();
+  await page.getByRole('button',{name:'Archive exercise',exact:true}).click();
+  await expect(page.getByText('No matches. Clear your search or change a filter.')).toBeVisible();
+  await page.getByRole('button',{name:'Close library',exact:true}).click();
+  await page.goto('/history');await page.getByRole('button',{name:'Review Strength session',exact:true}).click();
+  await expect(page.getByText('My press',{exact:true})).toBeVisible();
+  await page.goto('/progress');await expect(page.getByText('My press',{exact:true}).first()).toBeVisible();
+});

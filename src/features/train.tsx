@@ -17,7 +17,7 @@ import { InlineSet } from './inline-set';
 
 type Confirmation = { title: string; detail: string; label?: string; action: () => Promise<unknown> };
 export default function Train() {
-  const { workouts, repository, settings, run, pending } = useApp();
+  const { workouts, repository, settings, run, pending, customExercises } = useApp();
   const active = workouts.find(w => w.status === 'active');
   const [name, setName] = useState('Strength session');
   const [library, setLibrary] = useState(false);
@@ -32,7 +32,7 @@ export default function Train() {
       <Txt tone="muted" style={{ fontSize: 12 }}>Session saved locally · Statistics update when you finish</Txt>
       {active.exercises.length === 0 && <Empty title="Build your session" detail="Add an exercise from the library, then log your first set." />}
       {active.exercises.map((entry, index) => {
-        const exercise = exerciseById(entry.exerciseId);
+        const exercise = exerciseById(entry.exerciseId, customExercises, entry.exerciseSnapshot);
         const previous = previousPerformance(workouts, exercise.id, active.routineId);
         return <Card key={entry.id} style={{ padding: 16 }}>
           <Row style={{ alignItems: 'flex-start' }}><View style={{ flex: 1, gap: 4 }}><Eyebrow>EXERCISE {String(index + 1).padStart(2, '0')}</Eyebrow><Txt accessibilityRole="header" style={{ fontFamily: fonts.bold, fontSize: 20, lineHeight: 27 }}>{exercise.name}</Txt><Txt tone="muted" style={{ fontSize: 12 }}>{exercise.muscle} · {exercise.equipment}</Txt></View><Pressable accessibilityRole="button" accessibilityLabel={`Remove ${exercise.name}`} disabled={pending} onPress={() => setConfirm({ title: 'Remove exercise?', detail: `${exercise.name} and its sets will be removed from this session.`, action: () => repository.removeExercise(active.id, entry.id) })} style={{ minHeight: 44, minWidth: 44, alignItems: 'center', justifyContent: 'center' }}><Icon name="x" /></Pressable></Row>
@@ -53,6 +53,8 @@ export default function Train() {
       {editing && <SetEditor onDelete={() => { setEditing(null); setConfirm({ title: 'Delete this set?', detail: 'This set will be removed from this session.', action: () => repository.removeSet(active.id, editing.exId, editing.set.id) }); }} key={`${editing.set.id}-${settings.unit}`} set={editing.set} exerciseName={editing.exerciseName} unit={settings.unit} busy={pending} onClose={() => setEditing(null)} onSave={set => run(() => repository.editSet(active.id, editing.exId, set))} />}
       <Sheet visible={renaming} title="Name your session" onClose={() => { if (!pending) setRenaming(false); }}><Field label="Workout name" value={name} onChangeText={setName} maxLength={80} /><Button title="Save name" disabled={pending || !name.trim()} onPress={() => { void run(() => repository.renameWorkout(active.id, name)).then(ok => { if (ok) setRenaming(false); }); }} /><Button title="Cancel" variant="secondary" disabled={pending} onPress={() => setRenaming(false)} /></Sheet>
     </>}
+    {!active && <Button title="Browse exercise library" variant="secondary" onPress={() => setLibrary(true)} />}
+    {!active && library && <ExerciseLibrary added={[]} busy={pending} onClose={() => setLibrary(false)} />}
     <Confirm visible={!!confirm} title={confirm?.title ?? ''} detail={confirm?.detail ?? ''} confirmLabel={confirm?.label} busy={pending} onCancel={() => setConfirm(null)} onConfirm={() => {
       if (!confirm) return; const captured = confirm;
       void run(captured.action).then(ok => { if (ok) { setConfirm(null); if (captured.label === 'Save workout' && active) router.push({ pathname: '/workout/[id]', params: { id: active.id } }); } });

@@ -1,5 +1,5 @@
 import { completedWorkouts, personalRecord, weeklyConsistency, workingSets } from './calculations';
-import { exerciseById } from './exercises';
+import { exerciseFromHistory } from './exercises';
 import { WeightUnit, WorkoutSession } from './models';
 import { formatWeight } from './units';
 
@@ -23,7 +23,7 @@ export function buildInsights(workouts: readonly WorkoutSession[], target: numbe
   const result: Insight[] = [{ id:'week',title:`You completed ${current.count} ${current.count === 1 ? 'workout' : 'workouts'} this week.`,evidence:`${current.count} / ${target} weekly target · Monday-start calendar week.`,note:current.count >= target ? 'You have reached your selected target. Activity above it is still counted.' : 'Your next saved workout adds to this count.' },
     {id:'consistency',title:`Your four-week consistency is ${Number(consistency.percent.toFixed(1))}%.`,evidence:`${consistency.total} completed workouts / ${4*target} planned across this week and the previous three.`,note:'This is a record of completed sessions, not a measure of fitness or recovery.'}];
   const record=latestWeightRecord(workouts);
-  if(record) result.push({id:'record',title:`${exerciseById(record.exerciseId).name}: ${record.previous === null ? 'your first working-set record' : 'a heavier working set'}.`,evidence:`${formatWeight(record.grams,unit)} ${unit}${record.previous === null ? '' : `, previously ${formatWeight(record.previous,unit)} ${unit}`} · ${new Date(record.date).toLocaleDateString()}.`,note:'Only completed working sets in saved workouts qualify. Heaviest weight is separate from Estimated 1RM.'});
+  if(record) result.push({id:'record',title:`${exerciseFromHistory(record.exerciseId, workouts).name}: ${record.previous === null ? 'your first working-set record' : 'a heavier working set'}.`,evidence:`${formatWeight(record.grams,unit)} ${unit}${record.previous === null ? '' : `, previously ${formatWeight(record.previous,unit)} ${unit}`} · ${new Date(record.date).toLocaleDateString()}.`,note:'Only completed working sets in saved workouts qualify. Heaviest weight is separate from Estimated 1RM.'});
   const exerciseIds=[...new Set(saved.flatMap(w=>w.exercises.map(e=>e.exerciseId)))];
   const withHistory=exerciseIds.filter(id=>saved.filter(w=>workingSets(w).some(s=>s.exerciseId===id)).length>=2);
   result.push({id:'history',title:withHistory.length ? 'Compare sessions, one exercise at a time.' : 'Not enough history to identify a reliable trend.',evidence:`${saved.length} saved ${saved.length===1?'session':'sessions'} · ${withHistory.length} exercises with working sets in at least two sessions.`,note:'Session comparisons describe your log; they do not establish muscle growth or the cause of a change.'});
