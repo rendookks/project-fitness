@@ -20,3 +20,4 @@ Native iPhone acceptance and hardening: run DEVICE_TEST_CHECKLIST.md on the foun
 ## V5 premium tracker milestone
 
 - Stage 0: remote SDK 58 base verified; baseline recorded in docs/BASELINE.md. Compatibility fixes address TypeScript 6 ambient types and nullable tab icon colors; SDK 58 lint initialization issue fixed without disabling a check.
+- Stage 1: compact inline weight/reps, deliberate completion, advanced set details, exact previous-load add-set defaults, queued patch persistence, iOS keyboard Done accessory. `validate`: 41 unit tests plus SQLite/calendar/demo checks passed; Doctor 20/20; iOS/Android/web export passed; Chromium SQLite workout journey passed. Browser testing caught and fixed a saving-status layout shift that cancelled taps, plus missing web checked-state semantics. iPhone checks pending.

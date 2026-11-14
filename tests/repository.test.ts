@@ -87,3 +87,17 @@ test('library searches names, muscles and equipment with combined filters',()=>{
   expect(searchExercises('','Chest','Bodyweight').map(e=>e.id)).toEqual(['pushup']);
   expect(searchExercises('no such exercise')).toEqual([]);
 });
+
+test('queued inline patches do not undo completion or drift an unchanged load', async () => {
+  const {repo}=fixture(); const {w,ex}=await session(repo);
+  await repo.addSet(w.id,ex.id,set({completed:false,weightGrams:61235}));
+  await Promise.all([
+    repo.updateSet(w.id,ex.id,'set-1',{reps:8}),
+    repo.updateSet(w.id,ex.id,'set-1',{completed:true,reps:8}),
+    repo.updateSet(w.id,ex.id,'set-1',{weightGrams:61235}),
+  ]);
+  const saved=(await repo.load()).workouts[0].exercises[0].sets[0];
+  expect(saved).toMatchObject({reps:8,completed:true,weightGrams:61235});
+  await expect(repo.updateSet(w.id,ex.id,'set-1',{reps:0})).rejects.toThrow();
+  expect((await repo.load()).workouts[0].exercises[0].sets[0]).toEqual(saved);
+});

@@ -1,6 +1,6 @@
 import Feather from '@expo/vector-icons/Feather';
 import { ComponentProps, PropsWithChildren } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleProp, StyleSheet, Text, TextInput, TextInputProps, TextProps, View, ViewStyle } from 'react-native';
+import { ActivityIndicator, InputAccessoryView, Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleProp, StyleSheet, Text, TextInput, TextInputProps, TextProps, View, ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDemoLayout } from '../state/mode-layout';
 import { colors as c, fonts } from '../theme/tokens';
@@ -35,7 +35,7 @@ export function Chip({ label, selected, onPress }: { label: string; selected?: b
 }
 export function Screen({ children }: PropsWithChildren) {
   const demo=useDemoLayout();
-  return <SafeAreaView edges={demo?['left','right']:['top','left','right']} style={s.screen}><ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={s.content}>{children}</ScrollView></SafeAreaView>;
+  return <SafeAreaView edges={demo?['left','right']:['top','left','right']} style={s.screen}><KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}><ScrollView keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets contentContainerStyle={s.content}>{children}</ScrollView></KeyboardAvoidingView>{Platform.OS === 'ios' && <InputAccessoryView nativeID="set-done"><View style={{ padding: 8, backgroundColor: c.elevated }}><Button title="Done editing" onPress={Keyboard.dismiss} /></View></InputAccessoryView>}</SafeAreaView>;
 }
 export function Loading({ message = 'Opening your training space…' }: { message?: string }) {
   return <SafeAreaView style={[s.screen, s.center]}><ActivityIndicator color={c.iris} /><Txt tone="muted">{message}</Txt></SafeAreaView>;
@@ -54,6 +54,6 @@ const s = StyleSheet.create({
   input: { minHeight: 52, borderRadius: 10, borderWidth: 1, borderColor: c.border, backgroundColor: c.background, color: c.text, paddingHorizontal: 12, paddingVertical: 10, fontSize: 16, fontFamily: fonts.medium },
   chip: { minHeight: 44, borderRadius: 12, borderWidth: 1, borderColor: c.border, paddingHorizontal: 14, paddingVertical: 10, alignItems: 'center', justifyContent: 'center' },
   screen: { flex: 1, backgroundColor: c.background },
-  content: { padding: 20, paddingBottom: 40, gap: 24, width: '100%', maxWidth: 720, alignSelf: 'center' },
+  content: { padding: 20, paddingBottom: 40, gap: 18, width: '100%', maxWidth: 720, alignSelf: 'center' },
   center: { alignItems: 'center', justifyContent: 'center', gap: 16, padding: 24 },
 });

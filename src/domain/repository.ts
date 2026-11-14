@@ -75,6 +75,15 @@ export class WorkoutRepository {
       if (!ex || index < 0) throw new Error('Set not found.'); ex.sets[index] = { ...set };
     });
   }
+  updateSet(id: string, exerciseInstanceId: string, setId: string, patch: Partial<ExerciseSet>) {
+    return this.mutate(id, w => {
+      const ex = w.exercises.find(e => e.id === exerciseInstanceId);
+      const index = ex?.sets.findIndex(s => s.id === setId) ?? -1;
+      if (!ex || index < 0) throw new Error('Set not found.');
+      const next = { ...ex.sets[index], ...patch, id: setId };
+      validateSet(next); ex.sets[index] = next;
+    });
+  }
   removeSet(id: string, exerciseInstanceId: string, setId: string) {
     return this.mutate(id, w => { const ex = w.exercises.find(e => e.id === exerciseInstanceId); if (!ex) throw new Error('Exercise not found.'); ex.sets = ex.sets.filter(s => s.id !== setId); });
   }

@@ -6,8 +6,9 @@ import { colors, fonts } from '../theme/tokens';
 import { Button, Chip, Field, Row, Txt } from '../ui';
 import { Sheet } from '../ui/sheet';
 
-export function SetEditor({ set, unit, exerciseName, busy, onClose, onSave }: {
+export function SetEditor({ set, unit, exerciseName, busy, onClose, onSave, onDelete }: {
   set: ExerciseSet; unit: WeightUnit; exerciseName: string; busy: boolean; onClose: () => void;
+  onDelete?: () => void;
   onSave: (set: ExerciseSet) => Promise<boolean>;
 }) {
   const initialWeight = editableWeight(set.weightGrams, unit);
@@ -19,7 +20,7 @@ export function SetEditor({ set, unit, exerciseName, busy, onClose, onSave }: {
   const [discard, setDiscard] = useState(false);
   const dirty = weight !== initialWeight || reps !== String(set.reps) || kind !== set.kind || completed !== set.completed;
   const close = () => { if (!busy) { if (dirty) setDiscard(true); else onClose(); } };
-  return <Sheet visible title={discard ? 'Discard these edits?' : 'Edit set'} onClose={close}>
+  return <Sheet visible title={discard ? 'Discard these edits?' : 'Set details'} onClose={close}>
     {discard ? <><Txt tone="muted">The previously saved set will be preserved.</Txt><Button title="Discard edits" variant="danger" onPress={onClose} /><Button title="Keep editing" variant="secondary" onPress={() => setDiscard(false)} /></> : <>
       <Txt tone="muted">{exerciseName}</Txt>
       <Row><Field label={`Weight (${unit})`} value={weight} onChangeText={setWeight} keyboardType="decimal-pad" selectTextOnFocus maxLength={12} /><Field label="Repetitions" value={reps} onChangeText={setReps} keyboardType="number-pad" selectTextOnFocus maxLength={3} /></Row>
@@ -34,6 +35,7 @@ export function SetEditor({ set, unit, exerciseName, busy, onClose, onSave }: {
           void onSave(next).then(ok => { if (ok) onClose(); else setError('Could not save this set. Your previous saved set is preserved. Try again or cancel to view the error message.'); });
         } catch (e) { setError((e as Error).message); }
       }} />
+      {onDelete && <Button title="Delete set" variant="danger" disabled={busy} onPress={onDelete} />}
       <Button title="Cancel editing" variant="secondary" disabled={busy} onPress={close} />
       <Txt style={{ color: colors.muted, fontSize: 12, fontFamily: fonts.medium }}>Warm-up sets stay in your log but never count toward working volume or records.</Txt>
     </>}

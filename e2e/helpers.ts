@@ -14,10 +14,9 @@ export async function saveWorkout(page: Page, name: string, weight: string, reps
   await page.getByRole('button', { name: 'Add exercise', exact: true }).click();
   await page.getByRole('button', { name: 'Add Barbell Bench Press', exact: true }).click();
   await page.getByRole('button', { name: 'Add set · Barbell Bench Press', exact: true }).click();
-  await page.getByRole('textbox', { name: `Weight (${unit})`, exact: true }).fill(weight);
-  await page.getByRole('textbox', { name: 'Repetitions', exact: true }).fill(reps);
-  await page.getByRole('button', { name: 'Not completed yet', exact: true }).click();
-  await page.getByRole('button', { name: 'Save set', exact: true }).click();
+  await page.getByRole('textbox', { name: `Weight (${unit}) set 1 of Barbell Bench Press`, exact: true }).fill(weight);
+  await page.getByRole('textbox', { name: 'Repetitions set 1 of Barbell Bench Press', exact: true }).fill(reps);
+  await page.getByRole('checkbox', { name: 'Complete set 1 of Barbell Bench Press', exact: true }).click();
   await page.getByRole('button', { name: 'Finish workout', exact: true }).click();
   await page.getByRole('button', { name: 'Save workout', exact: true }).click();
   await expect(page.getByText('SAVED SESSION', { exact: true })).toBeVisible();
