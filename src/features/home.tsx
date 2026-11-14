@@ -21,7 +21,7 @@ export default function Home() {
     <Card style={{backgroundColor:c.elevated,borderColor:'#41415F',gap:14,padding:20}}>
       <Row><Eyebrow>{active?'IN PROGRESS':'NEXT WORKOUT'}</Eyebrow><Icon name={active?'activity':'play'} color={c.iris} /></Row>
       <Txt style={{fontSize:26,lineHeight:34,fontFamily:fonts.extra,letterSpacing:-.7}}>{active?active.name:next?next.name:'Your routine starts here.'}</Txt>
-      <Txt tone="muted" style={{fontSize:14}}>{active?`${active.exercises.length} exercises · ${active.exercises.reduce((n,e)=>n+e.sets.filter(s=>s.completed).length,0)} sets completed · saved locally`:next?`${next.exercises.length} exercises, ready to go. Previous performance fills in when available.`:'Choose your movements and targets once. Come back ready to lift.'}</Txt>
+      <Txt tone="muted" style={{fontSize:14}}>{active?`${active.exercises.length} ${active.exercises.length===1?'exercise':'exercises'} · ${active.exercises.reduce((n,e)=>n+e.sets.filter(s=>s.completed).length,0)} sets completed · saved locally`:next?`${next.exercises.length} ${next.exercises.length===1?'exercise':'exercises'}, ready to go. Previous performance fills in when available.`:'Choose your movements and targets once. Come back ready to lift.'}</Txt>
       <Button title={active?'Resume workout':next?`Start routine · ${next.name}`:'Create your first routine'} icon={active?'arrow-right':'play'} disabled={pending} onPress={()=>{if(active||!next)router.push('/(tabs)/train');else start(next.id);}} />
       <Button title="All routines & freestyle" variant="secondary" onPress={()=>router.push('/(tabs)/train')} />
     </Card>

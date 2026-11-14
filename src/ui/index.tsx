@@ -1,6 +1,6 @@
 import Feather from '@expo/vector-icons/Feather';
 import { ComponentProps, PropsWithChildren } from 'react';
-import { ActivityIndicator, InputAccessoryView, Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleProp, StyleSheet, Text, TextInput, TextInputProps, TextProps, View, ViewStyle } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleProp, StyleSheet, Text, TextInput, TextInputProps, TextProps, View, ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDemoLayout } from '../state/mode-layout';
 import { colors as c, fonts } from '../theme/tokens';
@@ -21,7 +21,7 @@ export function Button({ title, onPress, variant = 'primary', disabled, icon, te
   const color = variant === 'primary' ? c.ink : variant === 'danger' ? c.danger : c.text;
   return <Pressable testID={testID} accessibilityRole="button" accessibilityLabel={accessibilityLabel ?? title} accessibilityState={{ disabled: !!disabled }} aria-disabled={!!disabled} disabled={disabled} onPress={onPress}
     style={({ pressed }) => [s.button, variant === 'primary' ? { backgroundColor: c.iris } : { backgroundColor: c.elevated }, { opacity: disabled ? 0.45 : pressed ? 0.75 : 1 }]}>
-    {icon && <Icon name={icon} color={color} />}<Txt style={{ fontFamily: fonts.bold, color, textAlign: 'center' }}>{title}</Txt>
+    {icon && <Icon name={icon} color={color} />}<Txt style={{ fontFamily: fonts.bold, color, textAlign: 'center', flexShrink: 1 }}>{title}</Txt>
   </Pressable>;
 }
 export function Card({ children, style }: PropsWithChildren<{ style?: StyleProp<ViewStyle> }>) { return <View style={[s.card, style]}>{children}</View>; }
@@ -36,7 +36,7 @@ export function Chip({ label, selected, onPress }: { label: string; selected?: b
 }
 export function Screen({ children }: PropsWithChildren) {
   const demo=useDemoLayout();
-  return <SafeAreaView edges={demo?['left','right']:['top','left','right']} style={s.screen}><KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}><ScrollView keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets contentContainerStyle={s.content}>{children}</ScrollView></KeyboardAvoidingView>{Platform.OS === 'ios' && <InputAccessoryView nativeID="set-done"><View style={{ padding: 8, backgroundColor: c.elevated }}><Button title="Done editing" onPress={Keyboard.dismiss} /></View></InputAccessoryView>}</SafeAreaView>;
+  return <SafeAreaView edges={demo?['left','right']:['top','left','right']} style={s.screen}><KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}><ScrollView keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets contentContainerStyle={s.content}>{children}</ScrollView></KeyboardAvoidingView></SafeAreaView>;
 }
 export function Loading({ message = 'Opening your training space…' }: { message?: string }) {
   return <SafeAreaView style={[s.screen, s.center]}><ActivityIndicator color={c.iris} /><Txt tone="muted">{message}</Txt></SafeAreaView>;
@@ -53,7 +53,7 @@ const s = StyleSheet.create({
   card: { padding: 20, borderRadius: 24, backgroundColor: c.surface, gap: 12, borderWidth: 1, borderColor: c.border },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, justifyContent: 'space-between' },
   input: { minHeight: 52, borderRadius: 10, borderWidth: 1, borderColor: c.border, backgroundColor: c.background, color: c.text, paddingHorizontal: 12, paddingVertical: 10, fontSize: 16, fontFamily: fonts.medium },
-  chip: { minHeight: 44, borderRadius: 12, borderWidth: 1, borderColor: c.border, paddingHorizontal: 14, paddingVertical: 10, alignItems: 'center', justifyContent: 'center' },
+  chip: { maxWidth: '100%', minHeight: 44, borderRadius: 12, borderWidth: 1, borderColor: c.border, paddingHorizontal: 14, paddingVertical: 10, alignItems: 'center', justifyContent: 'center' },
   screen: { flex: 1, backgroundColor: c.background },
   content: { padding: 20, paddingBottom: 40, gap: 18, width: '100%', maxWidth: 720, alignSelf: 'center' },
   center: { alignItems: 'center', justifyContent: 'center', gap: 16, padding: 24 },

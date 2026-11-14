@@ -1,21 +1,8 @@
 # Roadmap
 
-## Current build
+## Current milestone — premium workout tracker
 
-- Stage 1 — Foundation: completed. Strict TypeScript, ESLint, 2 Jest tests, on-disk SQLite initialization/reopen checks, Expo Doctor 18/18, and iOS/Android/web export all passed. Native phone runtime remains unverified.
-- Stage 2 — Core workout loop: completed. Onboarding, searchable/filterable 24-exercise library, persistent active session, set editing/classification/completion/deletion, session saving, history, previous performance. 31 Jest tests, full real-SQLite lifecycle/rollback/reopen checks, DST checks in three timezones, browser journey with actual Expo SQLite reloads, Doctor 18/18, and iOS/Android/web export passed. Physical-device restart remains unverified.
-- Stage 3 — Product experience: completed. Premium Today, real-record charts and exercise history, units/settings, confirmed reset, rule-based insights, and informational Fuel/Learn/Recovery. 34 Jest tests, real-SQLite and timezone checks, 3 browser journeys, Doctor 18/18, and iOS/Android/web export passed. Reviewed 390px charts/Today and 320px enlarged-text browser screenshots; stacked the small-screen hero to prevent narrow word wrapping. Native text scaling, keyboard, and founder visual approval remain unverified.
-- Stage 4 — Isolated demo mode: completed. Separate named SQLite files, guarded seed initialization, persistent mode selection, visible banner including sheets, deterministic fictional history, independent profiles/units/drafts, and explicit per-database reset. 40 Jest tests, two-file real-SQLite migration/reopen/rollback/isolation checks, 4 browser journeys, Doctor 18/18, and all-platform export passed. Labeled demo browser screenshots are in docs/screenshots. No physical-device validation was performed.
-
-Physical-device validation is pending until the founders test an iPhone.
-
-## Future milestones (not implemented in this build)
-
-Full nutrition tracking; AI-powered food assistance; automatic steps; sleep/activity integrations; adaptive training programs; personalized AI coaching; interactive Fitness Academy; progress experiments; anatomical muscle visualization; social challenges; shareable reports; professional trainer tools; subscriptions; secure backend sync; research into wearable muscle-activity sensors. These require separate product, privacy, and compatibility review.
-
-## Next smallest milestone
-
-Native iPhone acceptance and hardening: run DEVICE_TEST_CHECKLIST.md on the founders’ actual Expo Go version, repair any reproducible keyboard/safe-area/text-scaling/VoiceOver defects, and verify force-close persistence and isolation after saves complete. Acceptance requires the full workout journey and both reset scopes to pass on a phone, with screenshots reviewed by the founders. Keep all current automated gates passing before expanding feature scope.
+Feature branch `v2-workout-tracker`, based on verified `sdk-58-upgrade` (bff649a). All seven implementation groups are delivered; final automated checks and browser screenshot review passed. Physical iPhone acceptance remains pending for this branch. See docs/DELIVERY.md for scope, limitations, and validation evidence.
 
 ## V5 premium tracker milestone
 
@@ -26,3 +13,20 @@ Native iPhone acceptance and hardening: run DEVICE_TEST_CHECKLIST.md on the foun
 - Stage 4: exercise-first Progress with range selection, separate record metrics, comparisons, history paging, recent records, inline and saved-session PR highlights. `validate`: 49 tests and all SQLite/calendar/isolation checks passed; Doctor 20/20; iOS/Android/web export passed; both analytics/unit/reset and 320px/enlarged-text browser journeys passed. No measured 1RM, readiness, or phone-runtime claims.
 - Stage 5: transparent rule-based Coach, conservative progression with evidence and insufficient-history handling, bodyweight treatment, optional editable targets in workouts. `validate`: 54 unit tests plus all persistence/timezone/isolation checks passed; Doctor 20/20; all-platform export passed. Browser progression journey completed two routines, inspected evidence, applied a suggested target, edited it, and verified reload persistence. Existing analytics/narrow-screen journeys also passed. No AI endpoint, account, or paid feature added.
 - Stage 6: Today prioritizes resume/routine start, primary tabs are Today/Train/Progress/Coach, Settings links secondary previews. `validate`: 54 unit tests and all SQL/calendar/isolation checks passed; Doctor 20/20; all-platform export passed; analytics, narrow-screen navigation, and full demo-mode browser journeys passed (3). Moved informational previews to stack routes after browser checks identified inaccessible hidden-tab URLs. Native visual/accessibility acceptance remains pending.
+
+- Stage 7: real-data v1 backup/validated preview/confirmed transactional restore, rollback and migration fault injection, final inline/keyboard/autofill hardening, documentation, Windows instructions, and ten reviewed browser screenshots. Clean `npm ci`; `validate` with 59 unit tests and all SQLite/calendar/isolation/backup checks; Doctor 20/20; iOS/Android/web export; full browser suite 9/9; strengthened backup check and final targeted browser reruns 3/3 passed. Physical iPhone acceptance remains pending.
+
+
+## Next — V2.1
+
+1. Physical iPhone acceptance and repair of any native keyboard, accessibility, persistence, or file-sharing defects.
+2. Device benchmarks with substantial histories, followed by measured query/pagination improvements.
+3. Explicit rep ranges and equipment-aware progression increments.
+
+## Deliberately deferred
+
+Session-to-routine copy-back prompts; optional starter templates; optional notes/RPE; timers; supersets; advanced programming; nutrition; Apple Health; social feeds; cloud accounts/sync; billing; conversational AI. No current screen claims these are working features.
+
+## Prototype history
+
+The original four stages established foundation, the workout loop, dashboards/insights, and isolated demo mode. The last prototype checkpoint had 40 passing unit tests, real-SQLite/calendar/demo checks, and four browser journeys. V5 baseline defects after the SDK 58 upgrade are recorded separately in docs/BASELINE.md. Original decisions remain in DECISIONS.md with explicit supersession notes.

@@ -30,7 +30,7 @@ export default function Progress() {
   return <Screen><Eyebrow>PROGRESS / STRENGTH FIRST</Eyebrow><Heading>Proof of your effort.</Heading>
     <Row><Txt tone="muted" style={{fontSize:14}}>{saved.length} workouts · {totalSets} working sets · all time</Txt><Button title="History" variant="secondary" onPress={()=>router.push('/history')} /></Row>
     <View style={{gap:10}}><Txt accessibilityRole="header" style={{fontFamily:fonts.bold,fontSize:20}}>Am I getting stronger?</Txt>
-      {available.length>0&&<><Field label="Find logged exercise" placeholder="Search your strength history" value={query} onChangeText={setQuery} /><View style={{flexDirection:'row',flexWrap:'wrap',gap:8}}>{available.filter(e=>e.name.toLowerCase().includes(query.toLowerCase())).slice(0,8).map(e=><Chip key={e.id} label={e.name} selected={e.id===selected} onPress={()=>{setChoice(e.id);setLimit(20);}} />)}</View></>}
+      {available.length>0&&<><Field label="Find logged exercise" placeholder="Search your strength history" value={query} onChangeText={setQuery} /><View style={{flexDirection:'row',flexWrap:'wrap',gap:8}}>{available.filter(e=>query?e.name.toLowerCase().includes(query.toLowerCase()):e.id===selected).slice(0,6).map(e=><Chip key={e.id} label={e.name} selected={e.id===selected} onPress={()=>{setChoice(e.id);setQuery('');setLimit(20);}} />)}</View></>}
     </View>
     {!available.length?<Empty title="A baseline comes first" detail="Save a workout with a completed working set to see exercise history, load records, and an Estimated 1RM chart." />:<>
       <Txt accessibilityRole="header" style={{fontFamily:fonts.bold,fontSize:22,lineHeight:28}}>{exercise.name}</Txt>

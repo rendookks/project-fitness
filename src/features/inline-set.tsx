@@ -6,8 +6,9 @@ import { colors as c, fonts } from '../theme/tokens';
 import { Icon, Row, Txt } from '../ui';
 
 /** Local numeric drafts may be invalid; only validated values cross the storage boundary. */
-export function InlineSet({ set, index, exerciseName, unit, onSave, onDetails, record }: {
+export function InlineSet({ set, index, exerciseName, unit, onSave, onDetails, record, onValidity }: {
   set: ExerciseSet; index: number; exerciseName: string; unit: WeightUnit;
+  onValidity: (valid: boolean) => void;
   record?: string;
   onSave: (patch: Partial<ExerciseSet>) => Promise<boolean>; onDetails: () => void;
 }) {
@@ -27,12 +28,18 @@ export function InlineSet({ set, index, exerciseName, unit, onSave, onDetails, r
       return ok;
     } catch (e) { setError((e as Error).message); return false; }
   };
+  const update = (field: 'weight' | 'reps', value: string) => {
+    draft.current[field] = value;
+    if(field === 'weight')setWeight(value);else setReps(value);
+    try { parseWeight(draft.current.weight, unit);parseReps(draft.current.reps);onValidity(true); }
+    catch { onValidity(false); }
+  };
   const inputStyle = { flex: 1, minWidth: 0, minHeight: 44, borderRadius: 9, borderWidth: 1, borderColor: error ? c.danger : c.border, backgroundColor: c.background, color: c.text, paddingHorizontal: 8, paddingVertical: 8, fontSize: 16, fontFamily: fonts.bold };
   return <View style={{ gap: 4 }}>
     <Row style={{ gap: 8, borderRadius: 10, backgroundColor: set.completed ? '#15302F' : undefined }}>
       <Pressable accessibilityRole="button" accessibilityLabel={`Set ${index + 1} details of ${exerciseName}`} onPress={onDetails} style={{ minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' }}><Txt style={{ fontSize: 13, color: set.kind === 'warmup' ? c.champagne : c.muted }}>{set.kind === 'warmup' ? 'W' : index + 1}</Txt></Pressable>
-      <TextInput accessibilityLabel={`Weight (${unit}) set ${index + 1} of ${exerciseName}`} value={weight} onChangeText={value => { draft.current.weight = value; setWeight(value); }} onBlur={() => { void save(); }} onSubmitEditing={() => { void save(); Keyboard.dismiss(); }} inputAccessoryViewID="set-done" returnKeyType="done" keyboardType="decimal-pad" selectTextOnFocus maxLength={12} style={inputStyle} />
-      <TextInput accessibilityLabel={`Repetitions set ${index + 1} of ${exerciseName}`} value={reps} onChangeText={value => { draft.current.reps = value; setReps(value); }} onBlur={() => { void save(); }} onSubmitEditing={() => { void save(); Keyboard.dismiss(); }} inputAccessoryViewID="set-done" returnKeyType="done" keyboardType="number-pad" selectTextOnFocus maxLength={3} style={inputStyle} />
+      <TextInput accessibilityLabel={`Weight (${unit}) set ${index + 1} of ${exerciseName}`} value={weight} onChangeText={value => update('weight', value)} onBlur={() => { void save(); }} onSubmitEditing={() => { void save(); Keyboard.dismiss(); }} inputAccessoryViewID="set-done" returnKeyType="done" keyboardType="decimal-pad" selectTextOnFocus maxLength={12} style={inputStyle} />
+      <TextInput accessibilityLabel={`Repetitions set ${index + 1} of ${exerciseName}`} value={reps} onChangeText={value => update('reps', value)} onBlur={() => { void save(); }} onSubmitEditing={() => { void save(); Keyboard.dismiss(); }} inputAccessoryViewID="set-done" returnKeyType="done" keyboardType="number-pad" selectTextOnFocus maxLength={3} style={inputStyle} />
       <Pressable accessibilityRole="checkbox" accessibilityLabel={`Complete set ${index + 1} of ${exerciseName}`} accessibilityState={{ checked: set.completed }} aria-checked={set.completed} onPress={() => {
         if (completing.current) return;
         completing.current = true;

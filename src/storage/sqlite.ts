@@ -1,3 +1,4 @@
+import type { UserData } from '../domain/backup';
 import { AppSettings, Exercise, Routine, UserProfile, WorkoutSession } from '../domain/models';
 import { DatabaseKind, DemoSeed, FitnessStorage } from './interface';
 
@@ -109,6 +110,17 @@ export class SqliteStorage implements FitnessStorage {
     await this.db.run('INSERT INTO routines(id, payload) VALUES (?, ?) ON CONFLICT(id) DO UPDATE SET payload=excluded.payload', routine.id, JSON.stringify(routine));
   }
   async deleteRoutine(id: string) { await this.db.run('DELETE FROM routines WHERE id = ?', id); }
+  async replaceUserData(data: UserData) {
+    if (this.kind !== 'real') throw new Error('Restore is available only for real data.');
+    await this.db.transaction(async () => {
+      await this.db.exec('DELETE FROM workouts; DELETE FROM routines; DELETE FROM custom_exercises; DELETE FROM profile; DELETE FROM settings;');
+      if(data.profile)await this.saveProfile(data.profile);
+      await this.saveSettings({...data.settings,demoEnabled:false});
+      for(const ex of data.customExercises)await this.saveCustomExercise(ex);
+      for(const routine of data.routines)await this.saveRoutine(routine);
+      for(const workout of data.workouts)await this.saveWorkout(workout);
+    });
+  }
   async reset() {
     await this.db.transaction(async () => {
       await this.db.exec('DELETE FROM custom_exercises; DELETE FROM routines; DELETE FROM workouts; DELETE FROM profile; DELETE FROM settings; DELETE FROM metadata;');

@@ -24,7 +24,7 @@ export function ExerciseLibrary({ onClose, onAdd, added, busy }: {
         <Field label="Search exercises" placeholder="Name, muscle, equipment…" value={query} onChangeText={setQuery} autoCorrect={false} />
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}><Chip label={muscle === 'All' ? 'All muscles' : muscle} selected={filter === 'muscle'} onPress={() => setFilter(filter === 'muscle' ? null : 'muscle')} /><Chip label={equipment === 'All' ? 'All equipment' : equipment} selected={filter === 'equipment'} onPress={() => setFilter(filter === 'equipment' ? null : 'equipment')} /></View>
         {filter && <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>{['All', ...(filter === 'muscle' ? MUSCLES : EQUIPMENT)].map(v => <Chip key={v} label={v} selected={(filter === 'muscle' ? muscle : equipment) === v} onPress={() => { if (filter === 'muscle') setMuscle(v); else setEquipment(v); setFilter(null); }} />)}</View>}
-        <Row><Txt tone="muted" style={{ fontSize: 12 }}>{results.length} movements</Txt><Button title="Create custom exercise" variant="secondary" disabled={busy} onPress={() => setEditing('new')} /></Row>
+        <Row><Txt tone="muted" style={{ fontSize: 12 }}>{results.length} movements</Txt><Button title="Custom exercise" accessibilityLabel="Create custom exercise" icon="plus" variant="secondary" disabled={busy} onPress={() => setEditing('new')} /></Row>
       </View>}
       ListEmptyComponent={<Txt tone="muted">No matches. Clear your search or change a filter.</Txt>}
       renderItem={({ item: ex }) => {

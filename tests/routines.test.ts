@@ -38,3 +38,12 @@ test('rejects invalid plans without replacing the saved one', async () => {
   await expect(repo.saveRoutine(bad)).rejects.toThrow();
   expect((await repo.load()).routines[0]).toMatchObject({ name: 'Push Day', exercises: [{ sets: [{ reps: 8 }] }] });
 });
+
+test('planned warmups do not shift the working-set autofill sequence',async()=>{
+  const storage=new MemoryStorage();const repo=new WorkoutRepository(storage);const plan=routine();
+  plan.exercises[0].sets=[{kind:'warmup',reps:5,weightGrams:20000},{kind:'working',reps:8,weightGrams:null},{kind:'working',reps:8,weightGrams:null}];
+  await repo.saveRoutine(plan);
+  await storage.saveWorkout(workout({routineId:'push',exercises:[{id:'old',exerciseId:'bench',sets:[set({id:'warm',kind:'warmup',weightGrams:100000}),set({id:'first',weightGrams:61235,reps:8}),set({id:'second',weightGrams:62000,reps:7})]}]}));
+  const next=await repo.startRoutine('push');
+  expect(next.exercises[0].sets.map(s=>[s.weightGrams,s.reps,s.completed])).toEqual([[20000,5,false],[61235,8,false],[62000,7,false]]);
+});

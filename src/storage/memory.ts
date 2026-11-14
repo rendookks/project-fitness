@@ -1,3 +1,4 @@
+import type { UserData } from '../domain/backup';
 import { AppSettings, Exercise, Routine, UserProfile, WorkoutSession } from '../domain/models';
 import { DatabaseKind, DemoSeed, FitnessStorage } from './interface';
 
@@ -37,5 +38,12 @@ export class MemoryStorage implements FitnessStorage {
   async getRoutines() { return copy([...this.routines.values()]); }
   async saveRoutine(routine: Routine) { this.routines.set(routine.id, copy(routine)); }
   async deleteRoutine(id: string) { this.routines.delete(id); }
+  async replaceUserData(data: UserData) {
+    if (this.kind !== 'real') throw new Error('Restore is available only for real data.');
+    const next = copy(data);
+    this.profile=next.profile; this.settings=next.settings;
+    this.customExercises=new Map(next.customExercises.map(e=>[e.id,e]));
+    this.routines=new Map(next.routines.map(r=>[r.id,r])); this.workouts=new Map(next.workouts.map(w=>[w.id,w]));
+  }
   async reset() { this.customExercises.clear(); this.routines.clear(); this.profile = null; this.settings = { unit: 'kg' }; this.workouts.clear(); this.seeded = false; }
 }

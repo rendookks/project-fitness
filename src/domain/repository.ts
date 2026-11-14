@@ -1,3 +1,4 @@
+import { parseBackup } from './backup';
 import { previousPerformance } from './calculations';
 import { EXERCISES, EQUIPMENT, MUSCLES, exerciseById } from './exercises';
 import { AppSettings, Exercise, ExerciseSet, Routine, UserProfile, WorkoutSession } from './models';
@@ -92,9 +93,11 @@ export class WorkoutRepository {
       const session: WorkoutSession = { id: this.id(), name: routine.name, routineId: routine.id, status: 'active', startedAt: this.now().toISOString(), completedAt: null,
         exercises: routine.exercises.map(entry => {
           const previous = previousPerformance(workouts, entry.exerciseId, routine.id);
+          let workingIndex = 0;
           return { id: this.id(), exerciseId: entry.exerciseId, exerciseSnapshot: exerciseById(entry.exerciseId, custom),
-            sets: entry.sets.map((planned, index) => {
-              const last = previous?.sets[index] ?? previous?.sets[previous.sets.length - 1];
+            sets: entry.sets.map(planned => {
+              const index = planned.kind === 'working' ? workingIndex++ : -1;
+              const last = index >= 0 ? previous?.sets[index] ?? previous?.sets[previous.sets.length - 1] : undefined;
               return { id: this.id(), kind: planned.kind, reps: planned.kind === 'working' ? last?.reps ?? planned.reps : planned.reps,
                 weightGrams: planned.kind === 'working' ? last?.weightGrams ?? planned.weightGrams ?? 0 : planned.weightGrams ?? 0, completed: false };
             }) };
@@ -166,6 +169,20 @@ export class WorkoutRepository {
   deleteWorkout(id: string) { return this.queue(() => this.storage.deleteWorkout(id)); }
   setUnit(unit: AppSettings['unit']) {
     return this.queue(async () => { if (!['kg', 'lb'].includes(unit)) throw new Error('Choose kg or lb.'); const current = await this.storage.getSettings(); await this.storage.saveSettings({ ...current, unit }); });
+  }
+  createBackup() {
+    return this.queue(async () => {
+      if(this.storage.kind !== 'real')throw new Error('Backup is available only for real data.');
+      const [profile,settings,workouts,routines,customExercises]=await Promise.all([this.storage.getProfile(),this.storage.getSettings(),this.storage.getWorkouts(),this.storage.getRoutines(),this.storage.getCustomExercises()]);
+      return parseBackup(JSON.stringify({format:'project-fitness-backup',version:1,source:'real',createdAt:this.now().toISOString(),profile,settings,workouts,routines,customExercises}));
+    });
+  }
+  restoreBackup(text: string) {
+    return this.queue(async () => {
+      if(this.storage.kind !== 'real')throw new Error('Restore is available only for real data.');
+      const validated=parseBackup(text);
+      await this.storage.replaceUserData(validated);
+    });
   }
   reset() { return this.queue(() => this.storage.reset()); }
 }

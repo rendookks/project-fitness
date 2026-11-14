@@ -1,3 +1,4 @@
+import type { UserData } from '../domain/backup';
 import { AppSettings, Exercise, Routine, UserProfile, WorkoutSession } from '../domain/models';
 
 export type DatabaseKind = 'real' | 'demo';
@@ -20,5 +21,6 @@ export interface FitnessStorage {
   getRoutines(): Promise<Routine[]>;
   saveRoutine(routine: Routine): Promise<void>;
   deleteRoutine(id: string): Promise<void>;
+  replaceUserData(data: UserData): Promise<void>;
   reset(): Promise<void>;
 }
