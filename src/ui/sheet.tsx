@@ -1,5 +1,5 @@
 import { PropsWithChildren } from 'react';
-import { KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDemoLayout } from '../state/mode-layout';
 import { colors } from '../theme/tokens';
@@ -7,11 +7,12 @@ import { Button, Heading, Txt } from './index';
 
 export function Sheet({ visible, title, onClose, children }: PropsWithChildren<{ visible: boolean; title: string; onClose: () => void }>) {
   const demo=useDemoLayout();
+  const { height }=useWindowDimensions();
   return <Modal visible={visible} transparent animationType="none" onRequestClose={onClose}>
     <SafeAreaView style={s.backdrop}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={s.avoid}>
-        <View style={s.sheet} accessibilityViewIsModal>
-          <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={s.content}>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={[s.avoid, { maxHeight: height * .9 }]}>
+        <View style={[s.sheet, { maxHeight: height * .9 }]} accessibilityViewIsModal>
+          <ScrollView style={{ flexShrink: 1 }} keyboardShouldPersistTaps="handled" contentContainerStyle={s.content}>
             <>{demo&&<Txt style={{fontSize:12,color:colors.champagne}}>DEMO MODE · Fictional training records</Txt>}</><Heading>{title}</Heading>{children}
           </ScrollView>
         </View>

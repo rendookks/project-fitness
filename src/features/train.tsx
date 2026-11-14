@@ -12,6 +12,7 @@ import { Button, Card, Empty, Eyebrow, Field, Heading, Icon, Row, Screen, Txt } 
 import { Confirm, Sheet } from '../ui/sheet';
 import { ExerciseLibrary } from './exercise-library';
 import { SetEditor } from './set-editor';
+import { Routines } from './routines';
 import { InlineSet } from './inline-set';
 
 type Confirmation = { title: string; detail: string; label?: string; action: () => Promise<unknown> };
@@ -25,17 +26,17 @@ export default function Train() {
   const [confirm, setConfirm] = useState<Confirmation | null>(null);
   const completedCount = active?.exercises.reduce((n,e) => n + e.sets.filter(s => s.completed).length, 0) ?? 0;
   const totalCount = active?.exercises.reduce((n,e) => n + e.sets.length, 0) ?? 0;
-  return <Screen><Row><Eyebrow>TRAIN / WORKOUT LOG</Eyebrow><Icon name="activity" color={c.iris} /></Row><Heading>{active ? active.name : 'Show up.\nGet stronger.'}</Heading>
-    {!active ? <><Txt tone="muted">Your space to train with intention. Build a session one exercise at a time.</Txt><Card><Field label="Workout name" value={name} maxLength={80} onChangeText={setName} /><Button title="Start workout" testID="start-workout" icon="play" disabled={pending || !name.trim()} onPress={() => { void run(() => repository.createWorkout(name)); }} /></Card><Empty title="Ready for your next session" detail="Sets save on this device. You can leave and resume an unfinished session later." /><Button title="View workout history" variant="secondary" onPress={() => router.push('/history')} /></> : <>
+  return <Screen><Row><Eyebrow>TRAIN / WORKOUT LOG</Eyebrow><Icon name="activity" color={c.iris} /></Row><Heading>{active ? active.name : 'Ready to train.'}</Heading>
+    {!active ? <><Routines /><Txt tone="muted">Your space to train with intention. Build a session one exercise at a time.</Txt><Card><Field label="Workout name" value={name} maxLength={80} onChangeText={setName} /><Button title="Start workout" testID="start-workout" icon="play" disabled={pending || !name.trim()} onPress={() => { void run(() => repository.createWorkout(name)); }} /></Card><Empty title="Ready for your next session" detail="Sets save on this device. You can leave and resume an unfinished session later." /><Button title="View workout history" variant="secondary" onPress={() => router.push('/history')} /></> : <>
       <Row><Txt tone="muted">{completedCount} / {totalCount} sets completed</Txt><Pressable accessibilityRole="button" accessibilityLabel="Rename workout" disabled={pending} onPress={() => { setName(active.name); setRenaming(true); }} style={{ minHeight: 44, justifyContent: 'center', padding: 8 }}><Icon name="edit-2" color={c.iris} /></Pressable></Row>
       <Txt tone="muted" style={{ fontSize: 12 }}>Session saved locally · Statistics update when you finish</Txt>
       {active.exercises.length === 0 && <Empty title="Build your session" detail="Add an exercise from the library, then log your first set." />}
       {active.exercises.map((entry, index) => {
         const exercise = exerciseById(entry.exerciseId);
-        const previous = previousPerformance(workouts, exercise.id);
+        const previous = previousPerformance(workouts, exercise.id, active.routineId);
         return <Card key={entry.id} style={{ padding: 16 }}>
           <Row style={{ alignItems: 'flex-start' }}><View style={{ flex: 1, gap: 4 }}><Eyebrow>EXERCISE {String(index + 1).padStart(2, '0')}</Eyebrow><Txt accessibilityRole="header" style={{ fontFamily: fonts.bold, fontSize: 20, lineHeight: 27 }}>{exercise.name}</Txt><Txt tone="muted" style={{ fontSize: 12 }}>{exercise.muscle} · {exercise.equipment}</Txt></View><Pressable accessibilityRole="button" accessibilityLabel={`Remove ${exercise.name}`} disabled={pending} onPress={() => setConfirm({ title: 'Remove exercise?', detail: `${exercise.name} and its sets will be removed from this session.`, action: () => repository.removeExercise(active.id, entry.id) })} style={{ minHeight: 44, minWidth: 44, alignItems: 'center', justifyContent: 'center' }}><Icon name="x" /></Pressable></Row>
-          <View style={{ backgroundColor: c.elevated, padding: 8, borderRadius: 10, gap: 4 }}><Txt style={{ fontSize: 12, color: c.aqua, fontFamily: fonts.bold }}>LAST SESSION</Txt><Txt tone="muted" style={{ fontSize: 12 }}>{previous ? `${new Date(previous.date).toLocaleDateString()} · ${previous.sets.map(s => `${formatWeight(s.weightGrams, settings.unit)} ${settings.unit} × ${s.reps}`).join(' / ')}` : 'Your first completed working set will start the story.'}</Txt></View>
+          <View style={{ backgroundColor: c.elevated, padding: 8, borderRadius: 10, gap: 4 }}><Txt style={{ fontSize: 12, color: c.aqua, fontFamily: fonts.bold }}>LAST SESSION</Txt><Txt tone="muted" style={{ fontSize: 12 }}>{previous ? `${new Date(previous.date).toLocaleDateString()} · ${previous.workoutName} · ${previous.sets.map(s => `${formatWeight(s.weightGrams, settings.unit)} ${settings.unit} × ${s.reps}`).join(' / ')}` : 'Your first completed working set will start the story.'}</Txt></View>
           <Row style={{ gap: 8 }}><Txt tone="muted" style={{ width: 44, fontSize: 10 }}>SET</Txt><Txt tone="muted" style={{ flex: 1, fontSize: 10 }}>{settings.unit.toUpperCase()}</Txt><Txt tone="muted" style={{ flex: 1, fontSize: 10 }}>REPS</Txt><Txt tone="muted" style={{ width: 44, fontSize: 10 }}>DONE</Txt></Row>
           {entry.sets.map((set, i) => <InlineSet key={`${set.id}-${settings.unit}`} set={set} index={i} exerciseName={exercise.name} unit={settings.unit} onSave={patch => run(() => repository.updateSet(active.id, entry.id, set.id, patch))} onDetails={() => setEditing({ exId: entry.id, exerciseName: exercise.name, set })} />)}
           <Button title={`Add set · ${exercise.name}`} variant="secondary" icon="plus" disabled={pending} onPress={() => {

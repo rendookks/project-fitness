@@ -1,5 +1,6 @@
+import { previousPerformance } from './calculations';
 import { exerciseById } from './exercises';
-import { AppSettings, ExerciseSet, UserProfile, WorkoutSession } from './models';
+import { AppSettings, ExerciseSet, Routine, UserProfile, WorkoutSession } from './models';
 import { MAX_WEIGHT_GRAMS } from './units';
 import { FitnessStorage } from '../storage/interface';
 
@@ -26,8 +27,8 @@ export class WorkoutRepository {
   }
   async load() {
     await this.tail;
-    const [profile, settings, workouts] = await Promise.all([this.storage.getProfile(), this.storage.getSettings(), this.storage.getWorkouts()]);
-    return { profile, settings, workouts };
+    const [profile, settings, workouts, routines] = await Promise.all([this.storage.getProfile(), this.storage.getSettings(), this.storage.getWorkouts(), this.storage.getRoutines()]);
+    return { profile, settings, workouts, routines };
   }
   onboard(profile: UserProfile, settings: AppSettings) {
     return this.queue(async () => {
@@ -42,6 +43,46 @@ export class WorkoutRepository {
       const cleaned = name.trim(); if (!cleaned || cleaned.length > 80) throw new Error('Give your workout a name of 1–80 characters.');
       const workout: WorkoutSession = { id: this.id(), name: cleaned, status: 'active', startedAt: this.now().toISOString(), completedAt: null, exercises: [] };
       await this.storage.saveWorkout(workout); return workout;
+    });
+  }
+  saveRoutine(routine: Routine) {
+    return this.queue(async () => {
+      if (!routine.id || !routine.name.trim() || routine.name.trim().length > 80 || routine.exercises.length > 100) throw new Error('Use a routine name of 1–80 characters and up to 100 exercises.');
+      if (new Set(routine.exercises.map(e => e.id)).size !== routine.exercises.length) throw new Error('Routine exercise identities must be unique.');
+      for (const entry of routine.exercises) {
+        exerciseById(entry.exerciseId);
+        if (!entry.sets.length || entry.sets.length > 50) throw new Error('Plan 1–50 sets per exercise.');
+        for (const set of entry.sets) validateSet({ ...set, id: 'planned', weightGrams: set.weightGrams ?? 0, completed: false });
+      }
+      await this.storage.saveRoutine({ ...routine, name: routine.name.trim(), updatedAt: this.now().toISOString() });
+    });
+  }
+  duplicateRoutine(id: string) {
+    return this.queue(async () => {
+      const source = (await this.storage.getRoutines()).find(r => r.id === id);
+      if (!source) throw new Error('Routine not found.');
+      const duplicate = { ...source, id: this.id(), name: `${source.name.slice(0, 73)} (copy)`, updatedAt: this.now().toISOString(), exercises: source.exercises.map(e => ({ ...e, id: this.id() })) };
+      await this.storage.saveRoutine(duplicate); return duplicate;
+    });
+  }
+  deleteRoutine(id: string) { return this.queue(() => this.storage.deleteRoutine(id)); }
+  startRoutine(id: string) {
+    return this.queue(async () => {
+      const workouts = await this.storage.getWorkouts();
+      const active = workouts.find(w => w.status === 'active'); if (active) return active;
+      const routine = (await this.storage.getRoutines()).find(r => r.id === id);
+      if (!routine || !routine.exercises.length) throw new Error('Add an exercise to this routine before starting.');
+      const session: WorkoutSession = { id: this.id(), name: routine.name, routineId: routine.id, status: 'active', startedAt: this.now().toISOString(), completedAt: null,
+        exercises: routine.exercises.map(entry => {
+          const previous = previousPerformance(workouts, entry.exerciseId, routine.id);
+          return { id: this.id(), exerciseId: entry.exerciseId, exerciseSnapshot: entry.exerciseSnapshot,
+            sets: entry.sets.map((planned, index) => {
+              const last = previous?.sets[index] ?? previous?.sets[previous.sets.length - 1];
+              return { id: this.id(), kind: planned.kind, reps: planned.kind === 'working' ? last?.reps ?? planned.reps : planned.reps,
+                weightGrams: planned.kind === 'working' ? last?.weightGrams ?? planned.weightGrams ?? 0 : planned.weightGrams ?? 0, completed: false };
+            }) };
+        }) };
+      await this.storage.saveWorkout(session); return session;
     });
   }
   private mutate(workoutId: string, action: (workout: WorkoutSession) => void): Promise<WorkoutSession> {

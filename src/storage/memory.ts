@@ -1,4 +1,4 @@
-import { AppSettings, UserProfile, WorkoutSession } from '../domain/models';
+import { AppSettings, Routine, UserProfile, WorkoutSession } from '../domain/models';
 import { DatabaseKind, DemoSeed, FitnessStorage } from './interface';
 
 function copy<T>(value: T): T { return JSON.parse(JSON.stringify(value)) as T; }
@@ -16,6 +16,7 @@ export class MemoryStorage implements FitnessStorage {
   }
   private profile: UserProfile | null = null;
   private settings: AppSettings = { unit: 'kg' };
+  private routines = new Map<string, Routine>();
   private workouts = new Map<string, WorkoutSession>();
   async saveOnboarding(profile: UserProfile, settings: AppSettings) { this.profile = copy(profile); this.settings = copy(settings); }
   async getProfile() { return copy(this.profile); }
@@ -30,5 +31,8 @@ export class MemoryStorage implements FitnessStorage {
     this.workouts.set(workout.id, copy(workout));
   }
   async deleteWorkout(id: string) { this.workouts.delete(id); }
-  async reset() { this.profile = null; this.settings = { unit: 'kg' }; this.workouts.clear(); this.seeded = false; }
+  async getRoutines() { return copy([...this.routines.values()]); }
+  async saveRoutine(routine: Routine) { this.routines.set(routine.id, copy(routine)); }
+  async deleteRoutine(id: string) { this.routines.delete(id); }
+  async reset() { this.routines.clear(); this.profile = null; this.settings = { unit: 'kg' }; this.workouts.clear(); this.seeded = false; }
 }

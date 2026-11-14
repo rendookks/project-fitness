@@ -1,4 +1,4 @@
-import { AppSettings, UserProfile, WorkoutSession } from '../domain/models';
+import { AppSettings, Routine, UserProfile, WorkoutSession } from '../domain/models';
 
 export type DatabaseKind = 'real' | 'demo';
 export interface DemoSeed { version: number; profile: UserProfile; settings: AppSettings; workouts: WorkoutSession[] }
@@ -15,5 +15,8 @@ export interface FitnessStorage {
   getWorkouts(): Promise<WorkoutSession[]>;
   saveWorkout(workout: WorkoutSession): Promise<void>;
   deleteWorkout(id: string): Promise<void>;
+  getRoutines(): Promise<Routine[]>;
+  saveRoutine(routine: Routine): Promise<void>;
+  deleteRoutine(id: string): Promise<void>;
   reset(): Promise<void>;
 }

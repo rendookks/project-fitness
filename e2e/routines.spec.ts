@@ -1,0 +1,33 @@
+import { expect, test } from '@playwright/test';
+import { onboard } from './helpers';
+
+test('Push Day routine, inline pounds, immutable history, and exact repeat autofill', async ({page}) => {
+  await onboard(page);
+  await page.goto('/settings'); await page.getByRole('button',{name:'Pounds (lb)',exact:true}).click();
+  await page.goto('/train'); await page.getByRole('button',{name:'Create routine',exact:true}).click();
+  await page.getByRole('textbox',{name:'Routine name',exact:true}).fill('Push Day');
+  await page.getByRole('button',{name:'Add routine exercise',exact:true}).click();
+  await page.getByRole('textbox',{name:'Search exercises',exact:true}).fill('Barbell Bench');
+  await page.getByRole('button',{name:'Add Barbell Bench Press',exact:true}).click();
+  await page.getByRole('textbox',{name:'Planned lb exercise 1 set 1',exact:true}).fill('135');
+  await page.getByRole('button',{name:'Save routine',exact:true}).click();
+  await page.getByRole('button',{name:'Start routine · Push Day',exact:true}).click();
+  const weight=page.getByRole('textbox',{name:'Weight (lb) set 1 of Barbell Bench Press',exact:true});
+  await expect(weight).toHaveValue('135');
+  await page.getByRole('textbox',{name:'Repetitions set 1 of Barbell Bench Press',exact:true}).fill('8');
+  await page.getByRole('checkbox',{name:'Complete set 1 of Barbell Bench Press',exact:true}).click();
+  await expect(page.getByRole('checkbox',{name:'Complete set 1 of Barbell Bench Press',exact:true})).toBeChecked();
+  await page.reload(); await expect(weight).toHaveValue('135');
+  await page.getByRole('button',{name:'Finish workout',exact:true}).click();
+  await page.getByRole('button',{name:'Save workout',exact:true}).click();
+  await expect(page.getByText('SAVED SESSION',{exact:true})).toBeVisible();
+  await page.goto('/train'); await page.getByRole('button',{name:'Edit Push Day',exact:true}).click();
+  await page.getByRole('textbox',{name:'Planned lb exercise 1 set 1',exact:true}).fill('200');
+  await page.getByRole('button',{name:'Save routine',exact:true}).click();
+  await page.getByRole('button',{name:'Start routine · Push Day',exact:true}).click();
+  await expect(weight).toHaveValue('135');
+  await expect(page.getByRole('checkbox',{name:'Complete set 1 of Barbell Bench Press',exact:true})).not.toBeChecked();
+  await weight.fill('140'); await weight.press('Tab');
+  await page.goto('/history'); await page.getByRole('button',{name:'Review Push Day',exact:true}).click();
+  await expect(page.getByText('1. 135 lb × 8',{exact:true})).toBeVisible();
+});

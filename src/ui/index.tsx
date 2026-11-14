@@ -13,12 +13,13 @@ export function Eyebrow({ children }: PropsWithChildren) { return <Txt style={s.
 export function Icon({ name, color = c.muted, size = 20 }: { name: ComponentProps<typeof Feather>['name']; color?: string; size?: number }) {
   return <Feather name={name} color={color} size={size} accessible={false} aria-hidden importantForAccessibility="no-hide-descendants" />;
 }
-export function Button({ title, onPress, variant = 'primary', disabled, icon, testID }: {
+export function Button({ title, onPress, variant = 'primary', disabled, icon, testID, accessibilityLabel }: {
   title: string; onPress: () => void; variant?: 'primary' | 'secondary' | 'danger'; disabled?: boolean;
+  accessibilityLabel?: string;
   icon?: ComponentProps<typeof Feather>['name']; testID?: string;
 }) {
   const color = variant === 'primary' ? c.ink : variant === 'danger' ? c.danger : c.text;
-  return <Pressable testID={testID} accessibilityRole="button" accessibilityLabel={title} accessibilityState={{ disabled: !!disabled }} disabled={disabled} onPress={onPress}
+  return <Pressable testID={testID} accessibilityRole="button" accessibilityLabel={accessibilityLabel ?? title} accessibilityState={{ disabled: !!disabled }} aria-disabled={!!disabled} disabled={disabled} onPress={onPress}
     style={({ pressed }) => [s.button, variant === 'primary' ? { backgroundColor: c.iris } : { backgroundColor: c.elevated }, { opacity: disabled ? 0.45 : pressed ? 0.75 : 1 }]}>
     {icon && <Icon name={icon} color={color} />}<Txt style={{ fontFamily: fonts.bold, color, textAlign: 'center' }}>{title}</Txt>
   </Pressable>;
@@ -29,7 +30,7 @@ export function Field({ label, ...props }: TextInputProps & { label: string }) {
   return <View style={{ gap: 8, flex: 1 }}><Txt style={s.label}>{label}</Txt><TextInput accessibilityLabel={label} placeholderTextColor={c.muted} selectionColor={c.iris} {...props} style={[s.input, props.style]} /></View>;
 }
 export function Chip({ label, selected, onPress }: { label: string; selected?: boolean; onPress: () => void }) {
-  return <Pressable accessibilityRole="button" accessibilityState={{ selected: !!selected }} onPress={onPress} style={({ pressed }) => [s.chip, selected && { backgroundColor: c.iris, borderColor: c.iris }, pressed && { opacity: .75 }]}>
+  return <Pressable accessibilityRole="button" accessibilityLabel={label} accessibilityState={{ selected: !!selected }} aria-pressed={!!selected} onPress={onPress} style={({ pressed }) => [s.chip, selected && { backgroundColor: c.iris, borderColor: c.iris }, pressed && { opacity: .75 }]}>
     <Txt style={{ fontSize: 14, fontFamily: fonts.bold, color: selected ? c.ink : c.muted }}>{label}</Txt>
   </Pressable>;
 }

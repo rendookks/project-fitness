@@ -63,6 +63,13 @@ async function main() {
     assert.equal(workoutVolume(restored.workouts[0]), 489880);
     assert.equal(personalRecord(restored.workouts,'bench').heaviestGrams, 61235);
     await repo.deleteWorkout(session.id); assert.deepEqual((await repo.load()).workouts, []);
+    await repo.saveRoutine({ id: 'push', name: 'Push Day', updatedAt: new Date().toISOString(), exercises: [{ id: 'planned', exerciseId: 'bench', sets: [{ kind: 'working', reps: 8, weightGrams: 61235 }] }] });
+    const planned = await repo.startRoutine('push');
+    assert.equal(planned.exercises[0].sets[0].weightGrams, 61235);
+    db.close(); db = new DatabaseSync(filename);
+    await migrate(nodeDriver(db)); storage = new SqliteStorage(nodeDriver(db)); repo = new WorkoutRepository(storage);
+    assert.equal((await repo.load()).routines[0].name, 'Push Day');
+    assert.equal((await repo.createWorkout('Resume')).id, planned.id);
     await storage.reset(); assert.equal(await storage.getProfile(), null); assert.deepEqual(await storage.getSettings(), { unit: 'kg' });
     db.exec('PRAGMA user_version = 99');
     await assert.rejects(() => migrate(nodeDriver(db)), /newer version/);

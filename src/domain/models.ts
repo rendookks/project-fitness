@@ -17,6 +17,9 @@ export interface Exercise {
   muscle: string;
   equipment: Equipment;
   bodyweight: boolean;
+  secondaryMuscles?: string[];
+  custom?: boolean;
+  archived?: boolean;
 }
 export interface ExerciseSet {
   id: string;
@@ -28,6 +31,7 @@ export interface ExerciseSet {
 export interface WorkoutExercise {
   id: string;
   exerciseId: string;
+  exerciseSnapshot?: Exercise;
   sets: ExerciseSet[];
 }
 export interface WorkoutSession {
@@ -36,5 +40,19 @@ export interface WorkoutSession {
   status: 'active' | 'completed';
   startedAt: string;
   completedAt: string | null;
+  routineId?: string;
   exercises: WorkoutExercise[];
+}
+
+export interface RoutineExercise {
+  id: string;
+  exerciseId: string;
+  exerciseSnapshot?: Exercise;
+  sets: { kind: ExerciseSet['kind']; reps: number; weightGrams: number | null }[];
+}
+export interface Routine {
+  id: string;
+  name: string;
+  updatedAt: string;
+  exercises: RoutineExercise[];
 }

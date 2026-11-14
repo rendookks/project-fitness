@@ -22,11 +22,12 @@ export function personalRecord(workouts: readonly WorkoutSession[], exerciseId: 
     estimated1RMGrams: estimates.length ? Math.max(...estimates) : null,
   };
 }
-export function previousPerformance(workouts: readonly WorkoutSession[], exerciseId: string) {
-  const previous = completedWorkouts(workouts).filter(w => workingSets(w).some(s => s.exerciseId === exerciseId))
-    .sort((a,b) => b.completedAt!.localeCompare(a.completedAt!))[0];
+export function previousPerformance(workouts: readonly WorkoutSession[], exerciseId: string, routineId?: string) {
+  const candidates = completedWorkouts(workouts).filter(w => workingSets(w).some(s => s.exerciseId === exerciseId))
+    .sort((a,b) => b.completedAt!.localeCompare(a.completedAt!));
+  const previous = (routineId ? candidates.find(w => w.routineId === routineId) : undefined) ?? candidates[0];
   if (!previous) return null;
-  return { date: previous.completedAt!, sets: workingSets(previous).filter(s => s.exerciseId === exerciseId).map(s => s.set) };
+  return { date: previous.completedAt!, workoutName: previous.name, workoutId: previous.id, sets: workingSets(previous).filter(s => s.exerciseId === exerciseId).map(s => s.set) };
 }
 export function startOfWeek(date: Date): Date {
   const monday = new Date(date);

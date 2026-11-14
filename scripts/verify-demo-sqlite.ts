@@ -25,8 +25,8 @@ async function main(){
     const real=await open('real');let state=await controller.snapshot();
     await state.repository.onboard(profile,{unit:'lb'});
     const draft=await state.repository.createWorkout('Real draft');const before=await real.getWorkouts();
-    // Recreate a populated v1 database and verify the v2 upgrade preserves it.
-    const realDB=databases.get('real')!;realDB.exec('DROP TABLE metadata; PRAGMA user_version = 1;');
+    // Recreate a populated v1 database and verify the current upgrade preserves it.
+    const realDB=databases.get('real')!;realDB.exec('DROP TABLE routines; DROP TABLE metadata; PRAGMA user_version = 1;');
     await migrate(nodeDriver(realDB));assert.deepEqual(await real.getWorkouts(),before);
     await assert.rejects(()=>real.initializeDemo(createDemoSeed(instant)),/forbidden/);
     await controller.switchMode('demo');state=await controller.snapshot();
